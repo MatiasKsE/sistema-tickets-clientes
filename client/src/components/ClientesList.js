@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import config from '../config';
 
 const ClientesList = () => {
   const [clientes, setClientes] = useState([]);
@@ -19,7 +20,7 @@ const ClientesList = () => {
         headers: { Authorization: `Bearer ${token}` }
       };
 
-      const response = await axios.get('/api/clientes', config);
+      const response = await axios.get(`${config.API_URL}/api/clientes`, config);
       setClientes(response.data);
     } catch (error) {
       setError('Error al cargar los clientes');
