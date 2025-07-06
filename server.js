@@ -18,7 +18,6 @@ app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? [
         'https://legado2025.netlify.app',
-        'https://tu-app.onrender.com',
         'http://localhost:3000'
       ]
     : ['http://localhost:3000'],

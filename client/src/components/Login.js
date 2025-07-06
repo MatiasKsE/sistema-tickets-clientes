@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import config from '../config';
 
 const Login = ({ onLogin }) => {
   const [formData, setFormData] = useState({
@@ -22,7 +23,7 @@ const Login = ({ onLogin }) => {
     setError('');
 
     try {
-      const response = await axios.post('/api/login', formData);
+      const response = await axios.post(`${config.API_URL}/api/login`, formData);
       onLogin(response.data.user, response.data.token);
     } catch (error) {
       setError(error.response?.data?.message || 'Error de conexión');
