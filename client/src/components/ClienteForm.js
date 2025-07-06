@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import config from '../config';
 
 const ClienteForm = () => {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ const ClienteForm = () => {
         headers: { Authorization: `Bearer ${token}` }
       };
 
-      const response = await axios.post('/api/clientes', formData, config);
+      const response = await axios.post(`${config.API_URL}/api/clientes`, formData, config);
       
       setSuccess('Cliente creado exitosamente');
       setFormData({
