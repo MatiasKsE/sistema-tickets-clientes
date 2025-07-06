@@ -16,11 +16,11 @@ const ClientesList = () => {
   const fetchClientes = async () => {
     try {
       const token = localStorage.getItem('token');
-      const config = {
+      const axiosConfig = {
         headers: { Authorization: `Bearer ${token}` }
       };
 
-      const response = await axios.get(`${config.API_URL}/api/clientes`, config);
+      const response = await axios.get(`${config.API_URL}/api/clientes`, axiosConfig);
       setClientes(response.data);
     } catch (error) {
       setError('Error al cargar los clientes');
