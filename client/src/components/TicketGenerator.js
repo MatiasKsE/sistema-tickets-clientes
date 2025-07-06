@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
+import config from '../config';
 
 const TicketGenerator = () => {
   const [searchParams] = useSearchParams();
@@ -30,11 +31,10 @@ const TicketGenerator = () => {
   const fetchClientes = async () => {
     try {
       const token = localStorage.getItem('token');
-      const config = {
+      const axiosConfig = {
         headers: { Authorization: `Bearer ${token}` }
       };
-
-      const response = await axios.get('/api/clientes', config);
+      const response = await axios.get(`${config.API_URL}/api/clientes`, axiosConfig);
       setClientes(response.data);
     } catch (error) {
       setError('Error al cargar los clientes');
@@ -54,7 +54,7 @@ const TicketGenerator = () => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await axios.post('/api/upload-ticket-image', formData, {
+      const response = await axios.post(`${config.API_URL}/api/upload-ticket-image`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
@@ -82,14 +82,14 @@ const TicketGenerator = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const config = {
+      const axiosConfig = {
         headers: { Authorization: `Bearer ${token}` }
       };
 
-      const response = await axios.post('/api/generar-ticket', {
+      const response = await axios.post(`${config.API_URL}/api/generar-ticket`, {
         clienteId: selectedCliente.id,
         imagenTicket: uploadedImage
-      }, config);
+      }, axiosConfig);
 
       setGeneratedTicket(response.data.ticket);
       setSuccess('Ticket generado exitosamente');
@@ -106,7 +106,7 @@ const TicketGenerator = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/descargar-ticket/${generatedTicket.id}`, {
+      const response = await axios.get(`${config.API_URL}/api/descargar-ticket/${generatedTicket.id}`, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob'
       });
