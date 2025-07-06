@@ -34,6 +34,7 @@ const ClienteForm = () => {
         headers: { Authorization: `Bearer ${token}` }
       };
 
+      console.log('URL de clientes:', `${config.API_URL}/api/clientes`);
       const response = await axios.post(`${config.API_URL}/api/clientes`, formData, axiosConfig);
       
       setSuccess('Cliente creado exitosamente');
