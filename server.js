@@ -29,7 +29,12 @@ app.use('/tickets', express.static('tickets'));
 
 // Servir archivos estáticos del cliente en producción
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'client/build')));
+  const clientBuildPath = path.join(__dirname, 'client/build');
+  if (fs.existsSync(clientBuildPath)) {
+    app.use(express.static(clientBuildPath));
+  } else {
+    console.log('⚠️  Cliente build no encontrado, sirviendo solo API');
+  }
 }
 
 // Configuración de multer para subir archivos
@@ -401,7 +406,20 @@ if (!fs.existsSync('database')) {
 // Ruta catch-all para el cliente React en producción
 if (process.env.NODE_ENV === 'production') {
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+    const indexPath = path.join(__dirname, 'client/build', 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.json({ 
+        message: 'API funcionando correctamente', 
+        note: 'Cliente React no disponible, solo API activa',
+        endpoints: {
+          test: '/api/test',
+          login: '/api/login',
+          clientes: '/api/clientes'
+        }
+      });
+    }
   });
 }
 

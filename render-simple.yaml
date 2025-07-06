@@ -1,8 +1,8 @@
 services:
   - type: web
-    name: sistema-tickets-clientes
+    name: sistema-tickets-clientes-api
     env: node
-    buildCommand: npm install && cd client && npm install && npx react-scripts build
+    buildCommand: npm install
     startCommand: node server.js
     envVars:
       - key: NODE_ENV

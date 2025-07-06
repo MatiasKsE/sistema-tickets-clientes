@@ -8,8 +8,7 @@
     "dev": "nodemon server.js",
     "client": "cd client && npm start",
     "build": "cd client && npx react-scripts build",
-    "install-client": "cd client && npm install",
-    "postinstall": "npm run install-client && npm run build"
+    "install-client": "cd client && npm install"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
