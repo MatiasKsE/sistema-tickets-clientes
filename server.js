@@ -321,6 +321,13 @@ app.get('/api/test', (req, res) => {
   });
 });
 
+// Ruta temporal para borrar todos los clientes (¡bórrala después de usarla!)
+app.post('/api/debug/vaciar-clientes', (req, res) => {
+  clientes = [];
+  guardarEnExcel();
+  res.json({ message: 'Todos los clientes han sido eliminados.' });
+});
+
 // Reemplazar la función generarTicket para PDF
 async function generarTicket(cliente, imagenTicket) {
   try {
