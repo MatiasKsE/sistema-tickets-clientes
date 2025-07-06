@@ -24,12 +24,25 @@ Una aplicación web completa para gestionar clientes y generar tickets personali
 
 ## 🚀 Instalación
 
-### Prerrequisitos
+### Opción 1: Instalación Automática (Recomendado)
 
+1. **Ejecutar el script de instalación**:
+   ```bash
+   install.bat
+   ```
+
+2. **Iniciar en desarrollo**:
+   ```bash
+   start.bat
+   ```
+
+### Opción 2: Instalación Manual
+
+#### Prerrequisitos
 - Node.js (versión 14 o superior)
 - npm o yarn
 
-### Pasos de instalación
+#### Pasos de instalación
 
 1. **Instalar Node.js**
    - Descarga e instala Node.js desde [nodejs.org](https://nodejs.org/)
@@ -45,24 +58,33 @@ Una aplicación web completa para gestionar clientes y generar tickets personali
    npm install
    ```
 
-4. **Iniciar el servidor**
+4. **Iniciar en desarrollo**
    ```bash
-   npm start
+   npm run dev
    ```
 
-5. **Iniciar el cliente (en otra terminal)**
-   ```bash
-   cd client
-   npm start
-   ```
+### 🚀 Despliegue en Internet
+
+Para que tus amigos puedan acceder desde cualquier lugar:
+
+1. **Sigue la guía de despliegue**: Ver `DEPLOYMENT.md`
+2. **Usa Railway**: Plataforma gratuita y fácil
+3. **Comparte la URL**: Una vez desplegado, comparte la URL con tus amigos
+
+**Pasos rápidos**:
+1. Sube tu código a GitHub
+2. Ve a [railway.app](https://railway.app)
+3. Conecta tu repositorio
+4. ¡Listo! Tu app estará en internet
 
 ## 👤 Usuarios por defecto
 
 | Usuario | Contraseña |
 |---------|------------|
-| admin1  | admin123   |
-| admin2  | admin123   |
-| admin3  | admin123   |
+| test    | 123456     |
+| admin1  | 123456     |
+| admin2  | 123456     |
+| admin3  | 123456     |
 
 ## 🎯 Cómo usar el sistema
 

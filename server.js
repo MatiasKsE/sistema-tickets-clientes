@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 8002;
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://tu-app.vercel.app', 'https://tu-app.vercel.app/'] 
+    ? ['https://tu-app.onrender.com', 'https://tu-app.railway.app', 'http://localhost:3000'] 
     : ['http://localhost:3000'],
   credentials: true
 }));
@@ -26,6 +26,11 @@ app.use(express.static('public'));
 // Servir archivos estáticos de uploads y tickets
 app.use('/uploads', express.static('uploads'));
 app.use('/tickets', express.static('tickets'));
+
+// Servir archivos estáticos del cliente en producción
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'client/build')));
+}
 
 // Configuración de multer para subir archivos
 const storage = multer.diskStorage({
@@ -180,6 +185,11 @@ app.post('/api/clientes', authenticateToken, (req, res) => {
 // Ruta para obtener todos los clientes
 app.get('/api/clientes', authenticateToken, (req, res) => {
   res.json(clientes);
+});
+
+// Ruta de prueba para healthcheck
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'API funcionando correctamente', timestamp: new Date().toISOString() });
 });
 
 // Ruta para generar ticket
@@ -388,6 +398,14 @@ if (!fs.existsSync('database')) {
   fs.mkdirSync('database');
 }
 
+// Ruta catch-all para el cliente React en producción
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+  });
+}
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
+  console.log(`Ambiente: ${process.env.NODE_ENV || 'development'}`);
 }); 

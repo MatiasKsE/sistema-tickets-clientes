@@ -1,7 +1,7 @@
 // Configuración para desarrollo y producción
 const config = {
   // URL del backend - cambiar según el entorno
-  API_URL: process.env.REACT_APP_API_URL || 'http://localhost:8002',
+  API_URL: process.env.REACT_APP_API_URL || 'https://tu-app.onrender.com',
   
   // Configuración de la aplicación
   APP_NAME: 'Sistema de Tickets y Clientes',

@@ -1,77 +1,144 @@
-# 🚀 Guía de Despliegue - Vercel + Railway
+# 🚀 Guía de Despliegue - Sistema de Tickets y Clientes
 
-## 📋 Pasos para hacer tu aplicación pública
+## 📋 Pasos para Desplegar en Railway
 
-### **Paso 1: Preparar el repositorio GitHub**
+### 1. Preparación del Proyecto
 
-1. **Crear cuenta en GitHub** (si no tienes): https://github.com
-2. **Crear un nuevo repositorio** llamado `sistema-tickets-clientes`
-3. **Subir tu código** al repositorio:
+1. **Instalar Railway CLI** (opcional pero recomendado):
    ```bash
-   git init
-   git add .
-   git commit -m "Primer commit"
-   git branch -M main
-   git remote add origin https://github.com/TU-USUARIO/sistema-tickets-clientes.git
-   git push -u origin main
+   npm install -g @railway/cli
    ```
 
-### **Paso 2: Desplegar el Backend en Railway**
+2. **Crear cuenta en Railway**:
+   - Ve a [railway.app](https://railway.app)
+   - Regístrate con tu cuenta de GitHub
 
-1. **Ir a Railway**: https://railway.app
-2. **Crear cuenta** con GitHub
-3. **Crear nuevo proyecto** → "Deploy from GitHub repo"
-4. **Seleccionar tu repositorio**
-5. **Configurar variables de entorno**:
-   - `PORT=8002`
-   - `JWT_SECRET=tu-secreto-super-seguro-123`
-   - `NODE_ENV=production`
-6. **Esperar a que se despliegue** y copiar la URL (ej: `https://tu-backend.railway.app`)
+### 2. Desplegar en Railway
 
-### **Paso 3: Desplegar el Frontend en Vercel**
+#### Opción A: Usando Railway Dashboard (Recomendado)
 
-1. **Ir a Vercel**: https://vercel.com
-2. **Crear cuenta** con GitHub
-3. **Importar proyecto** desde GitHub
-4. **Configurar variables de entorno**:
-   - `REACT_APP_API_URL=https://tu-backend.railway.app`
-5. **Deploy** y copiar la URL (ej: `https://tu-app.vercel.app`)
+1. **Conectar repositorio**:
+   - Ve a [railway.app](https://railway.app)
+   - Haz clic en "New Project"
+   - Selecciona "Deploy from GitHub repo"
+   - Conecta tu repositorio de GitHub
 
-### **Paso 4: Actualizar configuración**
+2. **Configurar variables de entorno**:
+   - En el dashboard de Railway, ve a la pestaña "Variables"
+   - Agrega las siguientes variables:
+     ```
+     NODE_ENV=production
+     PORT=8002
+     ```
 
-1. **Actualizar vercel.json** con la URL correcta del backend
-2. **Actualizar CORS** en server.js con la URL correcta del frontend
-3. **Redeploy** ambos servicios
+3. **Desplegar**:
+   - Railway detectará automáticamente que es una aplicación Node.js
+   - El despliegue comenzará automáticamente
 
-## 🔧 Configuración Final
+#### Opción B: Usando Railway CLI
 
-### **URLs de Acceso:**
-- **Frontend**: https://tu-app.vercel.app
-- **Backend**: https://tu-backend.railway.app
+1. **Iniciar sesión**:
+   ```bash
+   railway login
+   ```
 
-### **Credenciales:**
-- **Usuario**: admin1
-- **Contraseña**: 123456
+2. **Inicializar proyecto**:
+   ```bash
+   railway init
+   ```
 
-## 📱 Compartir con otros
+3. **Configurar variables**:
+   ```bash
+   railway variables set NODE_ENV=production
+   railway variables set PORT=8002
+   ```
 
-Una vez desplegado, puedes compartir la URL del frontend:
+4. **Desplegar**:
+   ```bash
+   railway up
+   ```
+
+### 3. Configurar Dominio Personalizado (Opcional)
+
+1. **Obtener URL de Railway**:
+   - En el dashboard de Railway, copia la URL generada
+   - Ejemplo: `https://tu-app.railway.app`
+
+2. **Configurar dominio personalizado**:
+   - En Railway, ve a "Settings" > "Domains"
+   - Agrega tu dominio personalizado
+
+### 4. Verificar el Despliegue
+
+1. **Probar la API**:
+   - Ve a `https://tu-app.railway.app/api/test`
+   - Deberías ver: `{"message":"API funcionando correctamente"}`
+
+2. **Probar la aplicación**:
+   - Ve a `https://tu-app.railway.app`
+   - Deberías ver la interfaz de login
+
+### 5. Credenciales de Acceso
+
+**Usuarios disponibles**:
+- Usuario: `test` / Contraseña: `123456`
+- Usuario: `admin1` / Contraseña: `123456`
+- Usuario: `admin2` / Contraseña: `123456`
+- Usuario: `admin3` / Contraseña: `123456`
+
+### 6. Compartir con Amigos
+
+Una vez desplegado, comparte la URL con tus amigos:
 ```
-https://tu-app.vercel.app
+https://tu-app.railway.app
 ```
 
-Cualquier persona podrá acceder desde cualquier lugar del mundo.
+### 7. Monitoreo y Logs
 
-## 🔒 Seguridad
+- **Ver logs en tiempo real**:
+  ```bash
+  railway logs
+  ```
 
-- ✅ **HTTPS automático** en Vercel y Railway
-- ✅ **CORS configurado** para producción
-- ✅ **Variables de entorno** seguras
-- ✅ **JWT tokens** para autenticación
+- **Ver estado del servicio**:
+  - En el dashboard de Railway, ve a la pestaña "Deployments"
 
-## 💰 Costos
+### 8. Actualizaciones
 
-- **Vercel**: Gratis (hasta 100GB/mes)
-- **Railway**: Gratis (hasta $5/mes de crédito)
+Para actualizar la aplicación:
+1. Haz push a tu repositorio de GitHub
+2. Railway detectará los cambios y desplegará automáticamente
 
-¡Tu aplicación estará disponible 24/7 para todos! 
+### 9. Solución de Problemas
+
+#### Error: "Build failed"
+- Verifica que todos los archivos estén en el repositorio
+- Revisa los logs de build en Railway
+
+#### Error: "Application error"
+- Revisa los logs de la aplicación
+- Verifica que las variables de entorno estén configuradas
+
+#### Error: "CORS error"
+- Verifica que la URL en `config.js` sea correcta
+- Asegúrate de que el servidor esté configurado para producción
+
+### 10. Costos
+
+- **Railway Free Tier**: 500 horas/mes gratis
+- **Para uso personal**: Generalmente suficiente
+- **Para más uso**: $5/mes por 1000 horas
+
+### 11. Alternativas de Despliegue
+
+Si Railway no funciona, puedes usar:
+- **Vercel**: Para frontend
+- **Render**: Para backend
+- **Heroku**: Para aplicación completa
+- **DigitalOcean**: Para control total
+
+---
+
+## 🎉 ¡Listo!
+
+Tu aplicación estará disponible en internet y tus amigos podrán acceder desde cualquier lugar usando la URL de Railway. 

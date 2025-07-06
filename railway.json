@@ -4,6 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
+    "numReplicas": 1,
     "startCommand": "node server.js",
     "healthcheckPath": "/api/test",
     "healthcheckTimeout": 100,

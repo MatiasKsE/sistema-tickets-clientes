@@ -16,37 +16,45 @@ if %errorlevel% neq 0 (
 echo Node.js encontrado. Continuando...
 echo.
 
-echo Instalando dependencias del servidor...
+echo [1/4] Instalando dependencias del servidor...
 npm install
-if %errorlevel% neq 0 (
-    echo ERROR: No se pudieron instalar las dependencias del servidor.
-    pause
-    exit /b 1
-)
 
 echo.
-echo Instalando dependencias del cliente...
+echo [2/4] Instalando dependencias del cliente...
 cd client
 npm install
-if %errorlevel% neq 0 (
-    echo ERROR: No se pudieron instalar las dependencias del cliente.
-    pause
-    exit /b 1
-)
 cd ..
 
 echo.
+echo [3/4] Construyendo aplicación para producción...
+cd client
+npm run build
+cd ..
+
+echo.
+echo [4/4] Verificando archivos...
+if exist "client\build" (
+    echo ✅ Cliente construido correctamente
+) else (
+    echo ❌ Error: No se pudo construir el cliente
+    pause
+    exit /b 1
+)
+
+echo.
 echo ========================================
-echo    Instalación completada exitosamente
+echo    ✅ Instalación Completada
 echo ========================================
 echo.
-echo Para iniciar el sistema:
-echo 1. Ejecuta: npm start
-echo 2. En otra terminal: cd client && npm start
+echo Para iniciar en desarrollo:
+echo   npm run dev
 echo.
-echo Usuarios disponibles:
-echo - admin1 / admin123
-echo - admin2 / admin123  
-echo - admin3 / admin123
+echo Para desplegar en Railway:
+echo   1. Sube tu código a GitHub
+echo   2. Ve a railway.app
+echo   3. Conecta tu repositorio
+echo   4. Configura las variables de entorno
+echo.
+echo Ver DEPLOYMENT.md para instrucciones detalladas
 echo.
 pause 
