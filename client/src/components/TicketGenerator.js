@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import config from '../config';
 
 const TicketGenerator = () => {
   const [searchParams] = useSearchParams();

@@ -53,15 +53,16 @@ const Navbar = ({ user, onLogout }) => {
 
           <div className="navbar-nav">
             <div className="nav-item dropdown">
-              <a
-                className="nav-link dropdown-toggle"
-                href="#"
-                role="button"
+              <button
+                className="nav-link dropdown-toggle btn btn-link"
+                type="button"
+                id="userDropdown"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
+                style={{ textDecoration: 'none', color: 'inherit', padding: 0 }}
               >
                 👤 {user?.username}
-              </a>
+              </button>
               <ul className="dropdown-menu">
                 <li>
                   <button className="dropdown-item" onClick={onLogout}>

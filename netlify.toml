@@ -1,9 +1,11 @@
 [build]
-  command = "npm install && cd client && npm install && npm run build"
+  base = "."
+  command = "cd client && npm install && npm run build"
   publish = "client/build"
 
 [build.environment]
   NODE_ENV = "production"
+  REACT_APP_API_URL = "https://sistema-tickets-clientes.onrender.com"
 
 [[redirects]]
   from = "/api/*"
