@@ -54,7 +54,7 @@ const ClientesList = () => {
           <h2>👥 Lista de Clientes</h2>
         </div>
         <div className="col-md-6 text-end">
-          <Link to="/nuevo-cliente" className="btn btn-primary">
+          <Link to="/nuevo-cliente" className="btn" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-bg-main)', border: 'none' }}>
             ➕ Agregar Cliente
           </Link>
         </div>
@@ -99,7 +99,7 @@ const ClientesList = () => {
                 {searchTerm ? 'Intenta con otros términos de búsqueda' : 'Aún no hay clientes registrados'}
               </p>
               {!searchTerm && (
-                <Link to="/nuevo-cliente" className="btn btn-primary">
+                <Link to="/nuevo-cliente" className="btn" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-bg-main)', border: 'none' }}>
                   ➕ Agregar Primer Cliente
                 </Link>
               )}
@@ -125,7 +125,7 @@ const ClientesList = () => {
               {filteredClientes.map((cliente) => (
                 <tr key={cliente.id}>
                   <td>
-                    <span className="badge bg-primary">{cliente.id}</span>
+                    <span className="badge" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-bg-main)' }}>{cliente.id}</span>
                   </td>
                   <td>
                     <strong>{cliente.nombreCompleto}</strong>
@@ -143,12 +143,13 @@ const ClientesList = () => {
                     })}
                   </td>
                   <td>
-                    <span className="badge bg-secondary">{cliente.creadoPor}</span>
+                    <span className="badge" style={{ backgroundColor: 'var(--color-primary-hover)', color: 'var(--color-bg-main)' }}>{cliente.creadoPor}</span>
                   </td>
                   <td>
                     <Link
                       to={`/generar-ticket?clienteId=${cliente.id}`}
-                      className="btn btn-sm btn-success"
+                      className="btn btn-sm"
+                      style={{ backgroundColor: 'var(--color-primary-hover)', color: 'var(--color-bg-main)', border: 'none' }}
                       title="Generar Ticket"
                     >
                       🎫 Ticket
@@ -170,29 +171,29 @@ const ClientesList = () => {
             <div className="row">
               <div className="col-md-3">
                 <div className="text-center">
-                  <h4 className="text-primary">{clientes.length}</h4>
-                  <small className="text-muted">Total Clientes</small>
+                  <h4 style={{ color: 'var(--color-accent)' }}>{clientes.length}</h4>
+                  <small style={{ color: 'var(--color-text-secondary)' }}>Total Clientes</small>
                 </div>
               </div>
               <div className="col-md-3">
                 <div className="text-center">
-                  <h4 className="text-success">
+                  <h4 style={{ color: 'var(--color-primary-hover)' }}>
                     {clientes.filter(c => c.iglesia.toLowerCase().includes('bautista')).length}
                   </h4>
-                  <small className="text-muted">Iglesias Bautistas</small>
+                  <small style={{ color: 'var(--color-text-secondary)' }}>Iglesias Bautistas</small>
                 </div>
               </div>
               <div className="col-md-3">
                 <div className="text-center">
-                  <h4 className="text-info">
+                  <h4 style={{ color: 'var(--color-accent)' }}>
                     {new Set(clientes.map(c => c.iglesia)).size}
                   </h4>
-                  <small className="text-muted">Iglesias Únicas</small>
+                  <small style={{ color: 'var(--color-text-secondary)' }}>Iglesias Únicas</small>
                 </div>
               </div>
               <div className="col-md-3">
                 <div className="text-center">
-                  <h4 className="text-warning">
+                  <h4 style={{ color: 'var(--color-accent)' }}>
                     {clientes.filter(c => {
                       const fecha = new Date(c.fechaCreacion);
                       const hoy = new Date();
@@ -201,7 +202,7 @@ const ClientesList = () => {
                       return diffDays <= 7;
                     }).length}
                   </h4>
-                  <small className="text-muted">Últimos 7 días</small>
+                  <small style={{ color: 'var(--color-text-secondary)' }}>Últimos 7 días</small>
                 </div>
               </div>
             </div>

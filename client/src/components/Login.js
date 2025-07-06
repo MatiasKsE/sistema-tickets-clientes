@@ -81,7 +81,8 @@ const Login = ({ onLogin }) => {
 
           <button
             type="submit"
-            className="btn btn-primary w-100"
+            className="btn w-100"
+            style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-bg-main)', border: 'none' }}
             disabled={loading}
           >
             {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
@@ -89,7 +90,7 @@ const Login = ({ onLogin }) => {
         </form>
 
         <div className="mt-4 text-center">
-          <small className="text-muted">
+          <small style={{ color: 'var(--color-text-secondary)' }}>
             <strong>Usuarios disponibles:</strong><br />
             admin1 / admin123<br />
             admin2 / admin123<br />

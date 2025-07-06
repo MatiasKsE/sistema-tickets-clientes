@@ -145,7 +145,8 @@ const ClienteForm = () => {
               <div className="d-grid gap-2">
                 <button
                   type="submit"
-                  className="btn btn-primary"
+                  className="btn"
+                  style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-bg-main)', border: 'none' }}
                   disabled={loading}
                 >
                   {loading ? (
@@ -160,7 +161,8 @@ const ClienteForm = () => {
                 
                 <button
                   type="button"
-                  className="btn btn-outline-secondary"
+                  className="btn"
+                  style={{ backgroundColor: 'var(--color-primary-hover)', color: 'var(--color-bg-main)', border: 'none' }}
                   onClick={() => navigate('/clientes')}
                 >
                   👥 Ver Todos los Clientes
@@ -169,7 +171,7 @@ const ClienteForm = () => {
             </form>
 
             <div className="mt-4">
-              <div className="alert alert-info">
+              <div style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-bg-main)', borderRadius: '4px', padding: '12px 16px' }}>
                 <h6>ℹ️ Información:</h6>
                 <ul className="mb-0">
                   <li>El ID será generado automáticamente de forma única</li>

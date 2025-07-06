@@ -160,6 +160,7 @@ const TicketGenerator = () => {
                   setSelectedCliente(cliente);
                 }}
                 required
+                style={{ backgroundColor: 'var(--color-bg-card)', color: 'var(--color-text-main)', border: '1px solid var(--color-accent)' }}
               >
                 <option value="">Selecciona un cliente...</option>
                 {clientes.map((cliente) => (
@@ -210,7 +211,8 @@ const TicketGenerator = () => {
 
             <div className="d-grid gap-2">
               <button
-                className="btn btn-success"
+                className="btn"
+                style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-bg-main)', border: 'none' }}
                 onClick={handleGenerateTicket}
                 disabled={!selectedCliente || !uploadedImage || loading}
               >
@@ -252,10 +254,11 @@ const TicketGenerator = () => {
 
                 <div className="d-grid gap-2">
                   <button
-                    className="btn btn-primary"
+                    className="btn"
+                    style={{ backgroundColor: 'var(--color-primary-hover)', color: 'var(--color-bg-main)', border: 'none' }}
                     onClick={handleDownloadTicket}
                   >
-                    📥 Descargar Ticket
+                    📥 Descargar Ticket PDF
                   </button>
                 </div>
 
