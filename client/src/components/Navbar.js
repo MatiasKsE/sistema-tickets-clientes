@@ -16,6 +16,14 @@ const Navbar = ({ user, onLogout }) => {
         </Link>
 
         <button
+          className="btn btn-outline-light btn-sm me-2"
+          onClick={onLogout}
+          style={{ fontWeight: 'bold', fontSize: '14px' }}
+        >
+          🚪 Salir
+        </button>
+
+        <button
           className="navbar-toggler"
           type="button"
           data-bs-toggle="collapse"
@@ -51,25 +59,11 @@ const Navbar = ({ user, onLogout }) => {
             </li>
           </ul>
 
-          <div className="navbar-nav">
-            <div className="nav-item dropdown">
-              <button
-                className="nav-link dropdown-toggle btn btn-link"
-                type="button"
-                id="userDropdown"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-                style={{ textDecoration: 'none', color: 'inherit', padding: 0 }}
-              >
+          <div className="navbar-nav align-items-center">
+            <div className="nav-item">
+              <span className="navbar-text text-light">
                 👤 {user?.username}
-              </button>
-              <ul className="dropdown-menu">
-                <li>
-                  <button className="dropdown-item" onClick={onLogout}>
-                    🚪 Cerrar Sesión
-                  </button>
-                </li>
-              </ul>
+              </span>
             </div>
           </div>
         </div>
