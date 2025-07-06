@@ -30,11 +30,11 @@ const ClienteForm = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const config = {
+      const axiosConfig = {
         headers: { Authorization: `Bearer ${token}` }
       };
 
-      const response = await axios.post(`${config.API_URL}/api/clientes`, formData, config);
+      const response = await axios.post(`${config.API_URL}/api/clientes`, formData, axiosConfig);
       
       setSuccess('Cliente creado exitosamente');
       setFormData({
