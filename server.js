@@ -61,7 +61,7 @@ if (!fs.existsSync('uploads')) {
 const users = [
   {
     id: 1,
-    username: 'test',
+    username: 'Nformigli',
     password: '$2a$10$cdiikVIiDq6R8V2TSzB6rOReikHNQlXrqjorisoeB9URKDph7h5Tu', // Legado2025-.
     role: 'admin'
   },
@@ -73,13 +73,13 @@ const users = [
   },
   {
     id: 3,
-    username: 'admin2',
+    username: 'Dverdina',
     password: '$2a$10$cdiikVIiDq6R8V2TSzB6rOReikHNQlXrqjorisoeB9URKDph7h5Tu', // Legado2025-.
     role: 'admin'
   },
   {
     id: 4,
-    username: 'admin3',
+    username: 'Cnavarro',
     password: '$2a$10$cdiikVIiDq6R8V2TSzB6rOReikHNQlXrqjorisoeB9URKDph7h5Tu', // Legado2025-.
     role: 'admin'
   }
