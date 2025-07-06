@@ -62,25 +62,25 @@ const users = [
   {
     id: 1,
     username: 'test',
-    password: '$2a$10$C1Nw83ifGBK4EnfKec4D7uzeif6rRzd8QNtWviK7F9E9WhujzgfNe', // 123456
+    password: '$2a$10$cdiikVIiDq6R8V2TSzB6rOReikHNQlXrqjorisoeB9URKDph7h5Tu', // Legado2025-.
     role: 'admin'
   },
   {
     id: 2,
     username: 'Rparedes',
-    password: '$2a$10$C1Nw83ifGBK4EnfKec4D7uzeif6rRzd8QNtWviK7F9E9WhujzgfNe', // rparedes
+    password: '$2a$10$cdiikVIiDq6R8V2TSzB6rOReikHNQlXrqjorisoeB9URKDph7h5Tu', // Legado2025-.
     role: 'admin'
   },
   {
     id: 3,
     username: 'admin2',
-    password: '$2a$10$C1Nw83ifGBK4EnfKec4D7uzeif6rRzd8QNtWviK7F9E9WhujzgfNe', // 123456
+    password: '$2a$10$cdiikVIiDq6R8V2TSzB6rOReikHNQlXrqjorisoeB9URKDph7h5Tu', // Legado2025-.
     role: 'admin'
   },
   {
     id: 4,
     username: 'admin3',
-    password: '$2a$10$C1Nw83ifGBK4EnfKec4D7uzeif6rRzd8QNtWviK7F9E9WhujzgfNe', // 123456
+    password: '$2a$10$cdiikVIiDq6R8V2TSzB6rOReikHNQlXrqjorisoeB9URKDph7h5Tu', // Legado2025-.
     role: 'admin'
   }
 ];
