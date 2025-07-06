@@ -16,7 +16,11 @@ const PORT = process.env.PORT || 8002;
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://tu-app.onrender.com', 'https://tu-app.railway.app', 'http://localhost:3000'] 
+    ? [
+        'https://legado2025.netlify.app',
+        'https://tu-app.onrender.com',
+        'http://localhost:3000'
+      ]
     : ['http://localhost:3000'],
   credentials: true
 }));
@@ -64,8 +68,8 @@ const users = [
   },
   {
     id: 2,
-    username: 'admin1',
-    password: '$2a$10$C1Nw83ifGBK4EnfKec4D7uzeif6rRzd8QNtWviK7F9E9WhujzgfNe', // 123456
+    username: 'Rparedes',
+    password: '$2a$10$C1Nw83ifGBK4EnfKec4D7uzeif6rRzd8QNtWviK7F9E9WhujzgfNe', // rparedes-.
     role: 'admin'
   },
   {
