@@ -20,7 +20,7 @@ const Dashboard = () => {
         headers: { Authorization: `Bearer ${token}` }
       };
 
-      const response = await axios.get('/api/clientes', config);
+      const response = await axios.get(`${config.API_URL}/api/clientes`, config);
       setStats({
         totalClientes: response.data.length,
         totalTickets: 0 // Esto se actualizaría cuando implementes tickets
@@ -35,7 +35,7 @@ const Dashboard = () => {
   const downloadReport = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/reporte-excel', {
+      const response = await axios.get(`${config.API_URL}/api/reporte-excel`, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob'
       });
@@ -76,7 +76,7 @@ const Dashboard = () => {
           <div className="card text-center">
             <div className="card-body">
               <h5 className="card-title">👥 Total Clientes</h5>
-              <h2 className="text-primary">{stats.totalClientes}</h2>
+              <h2 style={{ color: 'var(--color-accent)' }}>{stats.totalClientes}</h2>
             </div>
           </div>
         </div>
@@ -84,7 +84,7 @@ const Dashboard = () => {
           <div className="card text-center">
             <div className="card-body">
               <h5 className="card-title">🎫 Total Tickets</h5>
-              <h2 className="text-success">{stats.totalTickets}</h2>
+              <h2 style={{ color: 'var(--color-accent)' }}>{stats.totalTickets}</h2>
             </div>
           </div>
         </div>
@@ -98,13 +98,13 @@ const Dashboard = () => {
             </div>
             <div className="card-body">
               <div className="d-grid gap-2">
-                <Link to="/nuevo-cliente" className="btn btn-primary">
+                <Link to="/nuevo-cliente" className="btn" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-bg-main)', border: 'none' }}>
                   ➕ Agregar Nuevo Cliente
                 </Link>
-                <Link to="/generar-ticket" className="btn btn-success">
+                <Link to="/generar-ticket" className="btn" style={{ backgroundColor: 'var(--color-primary-hover)', color: 'var(--color-bg-main)', border: 'none' }}>
                   🎫 Generar Ticket
                 </Link>
-                <Link to="/clientes" className="btn btn-info">
+                <Link to="/clientes" className="btn" style={{ backgroundColor: 'var(--color-navbar)', color: 'var(--color-accent)', border: 'none' }}>
                   👥 Ver Todos los Clientes
                 </Link>
               </div>
@@ -119,10 +119,10 @@ const Dashboard = () => {
             </div>
             <div className="card-body">
               <div className="d-grid gap-2">
-                <button onClick={downloadReport} className="btn btn-outline-primary">
+                <button onClick={downloadReport} className="btn" style={{ backgroundColor: 'var(--color-bg-main)', color: 'var(--color-accent)', border: '1px solid var(--color-accent)' }}>
                   📥 Descargar Reporte Excel
                 </button>
-                <p className="text-muted small mt-2">
+                <p className="small mt-2" style={{ color: 'var(--color-text-secondary)' }}>
                   Descarga un reporte completo con todos los clientes y tickets generados
                 </p>
               </div>
