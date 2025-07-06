@@ -6,7 +6,6 @@ const TicketGenerator = () => {
   const [searchParams] = useSearchParams();
   const [clientes, setClientes] = useState([]);
   const [selectedCliente, setSelectedCliente] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -47,7 +46,6 @@ const TicketGenerator = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setSelectedImage(file);
     setLoading(true);
     setError('');
 
