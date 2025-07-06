@@ -68,7 +68,7 @@ const users = [
   {
     id: 2,
     username: 'Rparedes',
-    password: '$2a$10$C1Nw83ifGBK4EnfKec4D7uzeif6rRzd8QNtWviK7F9E9WhujzgfNe', // rparedes-.
+    password: '$2a$10$C1Nw83ifGBK4EnfKec4D7uzeif6rRzd8QNtWviK7F9E9WhujzgfNe', // rparedes
     role: 'admin'
   },
   {
@@ -239,7 +239,9 @@ app.get('/api/descargar-ticket/:ticketId', authenticateToken, (req, res) => {
   if (!ticket) {
     return res.status(404).json({ message: 'Ticket no encontrado' });
   }
-  
+  // Agregar header CORS manualmente
+  res.setHeader('Access-Control-Allow-Origin', 'https://legado2025.netlify.app');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.download(ticket.ticketPath);
 });
 
