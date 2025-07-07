@@ -96,6 +96,7 @@ const users = [
 // '123456' = '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy'
 
 let clientes = [];
+console.log('Clientes al iniciar:', clientes.length);
 let ticketsGenerados = [];
 
 // Función para generar ID único
