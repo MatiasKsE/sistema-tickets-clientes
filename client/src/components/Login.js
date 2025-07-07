@@ -36,7 +36,7 @@ const Login = ({ onLogin }) => {
     <div className="login-container">
       <div className="login-card">
         <div className="text-center mb-4">
-          <h2 className="mb-3">Sistema de Tickets</h2>
+          <h2 className="mb-3">Sistema Legado 2025</h2>
           <p className="text-muted">Inicia sesión para continuar</p>
         </div>
 

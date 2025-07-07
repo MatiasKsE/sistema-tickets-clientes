@@ -12,7 +12,7 @@ const Navbar = ({ user, onLogout }) => {
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container">
         <Link className="navbar-brand" to="/">
-          🎫 Sistema de Tickets
+          🎫 Sistema Legado 2025
         </Link>
 
         <button

@@ -132,7 +132,7 @@ const TicketGenerator = () => {
       <div className="col-md-6">
         <div className="card">
           <div className="card-header">
-            <h3 className="mb-0">🎫 Generar Ticket</h3>
+            <h3 className="mb-0">🎫 Generar Ticket - Sistema Legado 2025</h3>
           </div>
           <div className="card-body">
             {error && (

@@ -51,7 +51,7 @@ const ClientesList = () => {
     <div>
       <div className="row mb-4">
         <div className="col-md-6">
-          <h2>👥 Lista de Clientes</h2>
+          <h2>👥 Lista de Clientes - Sistema Legado 2025</h2>
         </div>
         <div className="col-md-6 text-end">
           <Link to="/nuevo-cliente" className="btn" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-bg-main)', border: 'none' }}>

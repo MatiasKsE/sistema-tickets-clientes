@@ -62,7 +62,7 @@ const ClienteForm = () => {
       <div className="col-md-8 col-lg-6">
         <div className="card">
           <div className="card-header">
-            <h3 className="mb-0">➕ Agregar Nuevo Cliente</h3>
+            <h3 className="mb-0">➕ Agregar Nuevo Cliente - Sistema Legado 2025</h3>
           </div>
           <div className="card-body">
             {error && (
