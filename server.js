@@ -329,6 +329,15 @@ app.post('/api/debug/vaciar-clientes', (req, res) => {
   res.json({ message: 'Todos los clientes han sido eliminados.' });
 });
 
+// Ruta para recargar clientes desde Excel
+app.post('/api/debug/recargar-clientes', authenticateToken, (req, res) => {
+  cargarDesdeExcel();
+  res.json({ 
+    message: 'Clientes recargados desde Excel',
+    clientesCargados: clientes.length 
+  });
+});
+
 // Reemplazar la función generarTicket para PDF
 async function generarTicket(cliente, imagenTicket) {
   try {
@@ -388,6 +397,36 @@ async function generarTicket(cliente, imagenTicket) {
   }
 }
 
+// Función para cargar clientes desde Excel
+function cargarDesdeExcel() {
+  try {
+    const filePath = 'database/clientes.xlsx';
+    if (fs.existsSync(filePath)) {
+      const workbook = XLSX.readFile(filePath);
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(worksheet);
+      
+      clientes = data.map(row => ({
+        id: row.ID,
+        nombreCompleto: row['Nombre Completo'],
+        telefono: row['Teléfono'],
+        iglesia: row['Iglesia'],
+        cedula: row['Cédula'],
+        fechaCreacion: row['Fecha Creación'],
+        creadoPor: row['Creado Por']
+      }));
+      
+      console.log(`✅ Cargados ${clientes.length} clientes desde Excel`);
+    } else {
+      console.log('⚠️  Archivo de clientes no encontrado, iniciando con lista vacía');
+    }
+  } catch (error) {
+    console.error('❌ Error cargando clientes desde Excel:', error);
+    clientes = [];
+  }
+}
+
 // Función para guardar en Excel
 function guardarEnExcel() {
   try {
@@ -406,8 +445,9 @@ function guardarEnExcel() {
     XLSX.utils.book_append_sheet(workbook, sheet, 'Clientes');
     
     XLSX.writeFile(workbook, 'database/clientes.xlsx');
+    console.log(`💾 Guardados ${clientes.length} clientes en Excel`);
   } catch (error) {
-    console.error('Error guardando en Excel:', error);
+    console.error('❌ Error guardando en Excel:', error);
   }
 }
 
@@ -415,6 +455,9 @@ function guardarEnExcel() {
 if (!fs.existsSync('database')) {
   fs.mkdirSync('database');
 }
+
+// Cargar clientes existentes al iniciar el servidor
+cargarDesdeExcel();
 
 // Ruta catch-all para el cliente React en producción
 if (process.env.NODE_ENV === 'production') {
