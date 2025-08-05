@@ -193,6 +193,8 @@ app.post('/api/clientes', authenticateToken, (req, res) => {
 
 // Ruta para obtener todos los clientes
 app.get('/api/clientes', authenticateToken, (req, res) => {
+  console.log(`📊 API: Devolviendo ${clientes.length} clientes`);
+  console.log('📋 Clientes actuales:', clientes);
   res.json(clientes);
 });
 
@@ -338,6 +340,16 @@ app.post('/api/debug/recargar-clientes', authenticateToken, (req, res) => {
   });
 });
 
+// Ruta para verificar estado actual de clientes
+app.get('/api/debug/estado-clientes', (req, res) => {
+  res.json({
+    clientesEnMemoria: clientes.length,
+    clientes: clientes,
+    archivoExcel: fs.existsSync('database/clientes.xlsx'),
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Reemplazar la función generarTicket para PDF
 async function generarTicket(cliente, imagenTicket) {
   try {
@@ -401,11 +413,15 @@ async function generarTicket(cliente, imagenTicket) {
 function cargarDesdeExcel() {
   try {
     const filePath = 'database/clientes.xlsx';
+    console.log('🔍 Intentando cargar desde:', filePath);
+    
     if (fs.existsSync(filePath)) {
       const workbook = XLSX.readFile(filePath);
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const data = XLSX.utils.sheet_to_json(worksheet);
+      
+      console.log('📊 Datos raw del Excel:', data);
       
       clientes = data.map(row => ({
         id: row.ID,
@@ -418,6 +434,7 @@ function cargarDesdeExcel() {
       }));
       
       console.log(`✅ Cargados ${clientes.length} clientes desde Excel`);
+      console.log('📋 Clientes procesados:', clientes);
     } else {
       console.log('⚠️  Archivo de clientes no encontrado, iniciando con lista vacía');
     }

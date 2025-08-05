@@ -11,17 +11,19 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('🔄 Dashboard: Iniciando fetchStats...');
     fetchStats();
   }, []);
 
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const config = {
+      const axiosConfig = {
         headers: { Authorization: `Bearer ${token}` }
       };
 
-      const response = await axios.get(`${config.API_URL}/api/clientes`, config);
+      const response = await axios.get(`${config.API_URL}/api/clientes`, axiosConfig);
+      console.log('📊 Dashboard: Datos recibidos:', response.data);
       setStats({
         totalClientes: response.data.length,
         totalTickets: 0 // Esto se actualizaría cuando implementes tickets
