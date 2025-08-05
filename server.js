@@ -43,19 +43,51 @@ if (process.env.NODE_ENV === 'production') {
 // Configuración de multer para subir archivos
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    // Crear directorio si no existe
+    if (!fs.existsSync('uploads')) {
+      fs.mkdirSync('uploads');
+    }
     cb(null, 'uploads/');
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
+    // Limpiar el nombre del archivo para evitar caracteres especiales
+    const cleanName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    cb(null, Date.now() + '-' + cleanName);
   }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB máximo
+  },
+  fileFilter: function (req, file, cb) {
+    // Verificar tipo de archivo
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten archivos de imagen'), false);
+    }
+  }
+});
 
 // Crear directorio uploads si no existe
 if (!fs.existsSync('uploads')) {
   fs.mkdirSync('uploads');
 }
+
+// Middleware para manejar errores de multer
+const handleMulterError = (error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ message: 'El archivo es demasiado grande. Máximo 5MB.' });
+    }
+    return res.status(400).json({ message: 'Error al subir el archivo: ' + error.message });
+  } else if (error) {
+    return res.status(400).json({ message: error.message });
+  }
+  next();
+};
 
 // Base de datos simulada (en producción usarías una base de datos real)
 const users = [
@@ -150,16 +182,43 @@ app.post('/api/login', async (req, res) => {
 });
 
 // Ruta para cargar imagen de ticket
-app.post('/api/upload-ticket-image', authenticateToken, upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: 'No se subió ninguna imagen' });
+app.post('/api/upload-ticket-image', authenticateToken, upload.single('image'), handleMulterError, (req, res) => {
+  try {
+    console.log('📤 Subida de imagen solicitada');
+    console.log('📁 Archivo recibido:', req.file);
+    console.log('👤 Usuario:', req.user.username);
+    
+    if (!req.file) {
+      console.log('❌ No se subió ningún archivo');
+      return res.status(400).json({ message: 'No se subió ninguna imagen' });
+    }
+    
+    // Verificar que el archivo es una imagen
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp'];
+    if (!allowedTypes.includes(req.file.mimetype)) {
+      console.log('❌ Tipo de archivo no permitido:', req.file.mimetype);
+      return res.status(400).json({ message: 'Solo se permiten archivos de imagen (JPEG, PNG, GIF, BMP)' });
+    }
+    
+    // Verificar que el archivo existe
+    if (!fs.existsSync(req.file.path)) {
+      console.log('❌ Archivo no encontrado en el servidor:', req.file.path);
+      return res.status(500).json({ message: 'Error al guardar la imagen en el servidor' });
+    }
+    
+    console.log('✅ Imagen subida exitosamente:', req.file.filename);
+    
+    res.json({ 
+      message: 'Imagen subida exitosamente',
+      filename: req.file.filename,
+      path: req.file.path,
+      size: req.file.size,
+      mimetype: req.file.mimetype
+    });
+  } catch (error) {
+    console.error('❌ Error en subida de imagen:', error);
+    res.status(500).json({ message: 'Error interno del servidor al subir la imagen' });
   }
-  
-  res.json({ 
-    message: 'Imagen subida exitosamente',
-    filename: req.file.filename,
-    path: req.file.path 
-  });
 });
 
 // Ruta para crear cliente
