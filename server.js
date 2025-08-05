@@ -290,6 +290,15 @@ app.get('/api/reporte-excel', authenticateToken, (req, res) => {
   }
 });
 
+// Ruta para obtener estadísticas (clientes y tickets)
+app.get('/api/stats', authenticateToken, (req, res) => {
+  res.json({
+    totalClientes: clientes.length,
+    totalTickets: ticketsGenerados.length,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Ruta de debug para verificar usuarios
 app.get('/api/debug/users', (req, res) => {
   const userList = users.map(user => ({

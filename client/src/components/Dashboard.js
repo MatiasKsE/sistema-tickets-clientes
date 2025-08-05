@@ -13,6 +13,19 @@ const Dashboard = () => {
   useEffect(() => {
     console.log('🔄 Dashboard: Iniciando fetchStats...');
     fetchStats();
+    
+    // Escuchar eventos de tickets generados
+    const handleTicketGenerated = () => {
+      console.log('🎫 Dashboard: Ticket generado, actualizando estadísticas...');
+      fetchStats();
+    };
+    
+    window.addEventListener('ticketGenerated', handleTicketGenerated);
+    
+    // Cleanup del event listener
+    return () => {
+      window.removeEventListener('ticketGenerated', handleTicketGenerated);
+    };
   }, []);
 
   const fetchStats = async () => {
@@ -22,11 +35,11 @@ const Dashboard = () => {
         headers: { Authorization: `Bearer ${token}` }
       };
 
-      const response = await axios.get(`${config.API_URL}/api/clientes`, axiosConfig);
-      console.log('📊 Dashboard: Datos recibidos:', response.data);
+      const response = await axios.get(`${config.API_URL}/api/stats`, axiosConfig);
+      console.log('📊 Dashboard: Estadísticas recibidas:', response.data);
       setStats({
-        totalClientes: response.data.length,
-        totalTickets: 0 // Esto se actualizaría cuando implementes tickets
+        totalClientes: response.data.totalClientes,
+        totalTickets: response.data.totalTickets
       });
     } catch (error) {
       console.error('Error obteniendo estadísticas:', error);

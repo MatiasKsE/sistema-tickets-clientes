@@ -93,6 +93,12 @@ const TicketGenerator = () => {
 
       setGeneratedTicket(response.data.ticket);
       setSuccess('Ticket generado exitosamente');
+      
+      // Actualizar el contador de tickets en el Dashboard
+      // Esto se puede hacer mediante un evento personalizado
+      window.dispatchEvent(new CustomEvent('ticketGenerated', {
+        detail: { ticketCount: 1 }
+      }));
     } catch (error) {
       setError('Error al generar el ticket');
       console.error('Error:', error);
