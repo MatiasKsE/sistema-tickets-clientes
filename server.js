@@ -40,6 +40,24 @@ if (process.env.NODE_ENV === 'production') {
   }
 }
 
+// Middleware de autenticación (mover antes de las rutas)
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Token no proporcionado' });
+  }
+
+  jwt.verify(token, 'tu_secreto_jwt_aqui', (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Token inválido' });
+    }
+    req.user = user;
+    next();
+  });
+};
+
 // Configuración de multer para subir archivos (simplificada)
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -125,24 +143,6 @@ function generarIDUnico() {
   const random = Math.floor(Math.random() * 1000);
   return `ID-${timestamp}-${random}`;
 }
-
-// Middleware de autenticación
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ message: 'Token no proporcionado' });
-  }
-
-  jwt.verify(token, 'tu_secreto_jwt_aqui', (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: 'Token inválido' });
-    }
-    req.user = user;
-    next();
-  });
-};
 
 // Rutas de autenticación
 app.post('/api/login', async (req, res) => {
