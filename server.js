@@ -491,24 +491,67 @@ function cargarDesdeExcel() {
       
       console.log('📊 Datos raw del Excel:', data);
       
-      clientes = data.map(row => ({
+      // Filtrar solo registros válidos (con ID y nombre)
+      const clientesValidos = data.filter(row => row.ID && row['Nombre Completo']);
+      
+      clientes = clientesValidos.map(row => ({
         id: row.ID,
         nombreCompleto: row['Nombre Completo'],
-        telefono: row['Teléfono'],
-        iglesia: row['Iglesia'],
-        cedula: row['Cédula'],
-        fechaCreacion: row['Fecha Creación'],
-        creadoPor: row['Creado Por']
+        telefono: row['Teléfono'] || '',
+        iglesia: row['Iglesia'] || '',
+        cedula: row['Cédula'] || '',
+        fechaCreacion: row['Fecha Creación'] || new Date().toISOString(),
+        creadoPor: row['Creado Por'] || 'Sistema'
       }));
       
-      console.log(`✅ Cargados ${clientes.length} clientes desde Excel`);
+      console.log(`✅ Cargados ${clientes.length} clientes válidos desde Excel`);
       console.log('📋 Clientes procesados:', clientes);
+      
+      // Si no hay clientes válidos, crear uno de ejemplo
+      if (clientes.length === 0) {
+        console.log('⚠️  No hay clientes válidos, creando cliente de ejemplo...');
+        const clienteEjemplo = {
+          id: generarIDUnico(),
+          nombreCompleto: 'Cliente de Ejemplo',
+          telefono: '1234567890',
+          iglesia: 'Iglesia de Ejemplo',
+          cedula: '123456789',
+          fechaCreacion: new Date().toISOString(),
+          creadoPor: 'Sistema'
+        };
+        clientes.push(clienteEjemplo);
+        guardarEnExcel(); // Guardar el cliente de ejemplo
+        console.log('✅ Cliente de ejemplo creado y guardado');
+      }
     } else {
-      console.log('⚠️  Archivo de clientes no encontrado, iniciando con lista vacía');
+      console.log('⚠️  Archivo de clientes no encontrado, creando archivo con cliente de ejemplo...');
+      const clienteEjemplo = {
+        id: generarIDUnico(),
+        nombreCompleto: 'Cliente de Ejemplo',
+        telefono: '1234567890',
+        iglesia: 'Iglesia de Ejemplo',
+        cedula: '123456789',
+        fechaCreacion: new Date().toISOString(),
+        creadoPor: 'Sistema'
+      };
+      clientes = [clienteEjemplo];
+      guardarEnExcel();
+      console.log('✅ Archivo creado con cliente de ejemplo');
     }
   } catch (error) {
     console.error('❌ Error cargando clientes desde Excel:', error);
-    clientes = [];
+    console.log('🛠️  Creando cliente de respaldo...');
+    const clienteRespaldo = {
+      id: generarIDUnico(),
+      nombreCompleto: 'Cliente de Respaldo',
+      telefono: '1234567890',
+      iglesia: 'Iglesia de Respaldo',
+      cedula: '123456789',
+      fechaCreacion: new Date().toISOString(),
+      creadoPor: 'Sistema'
+    };
+    clientes = [clienteRespaldo];
+    guardarEnExcel();
   }
 }
 
