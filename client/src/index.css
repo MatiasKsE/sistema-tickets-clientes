@@ -120,8 +120,14 @@ code {
 }
 
 .navbar .navbar-brand, .navbar .nav-link, .navbar .navbar-text {
-  color: var(--color-accent) !important;
+  color: var(--color-text-main) !important;
 }
+.navbar .nav-link:hover,
+.navbar .navbar-brand:hover {
+  color: var(--color-accent) !important; /* Verde claro al pasar el mouse */
+  font-weight: bold;
+}
+
 
 .navbar .nav-link.active {
   color: var(--color-text-main) !important;
