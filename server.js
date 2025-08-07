@@ -117,7 +117,7 @@ const users = [
   },
   {
     id: 4,
-    username: 'Cnavarro',
+    username: 'Erolon',
     password: '$2a$10$cdiikVIiDq6R8V2TSzB6rOReikHNQlXrqjorisoeB9URKDph7h5Tu', // Legado2025-.
     role: 'admin'
   }
