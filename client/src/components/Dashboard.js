@@ -83,7 +83,7 @@ const Dashboard = () => {
     <div>
       <div className="row mb-4">
         <div className="col-12">
-          <h1 className="mb-4">📊 Dashboard - Sistema Legado 2025</h1>
+          <h1 className="mb-4">🏠 IPP - Sistema Legado 2025</h1>
         </div>
       </div>
 
