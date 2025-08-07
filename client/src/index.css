@@ -1,9 +1,9 @@
 :root {
-  --color-bg-main: #232A23;
-  --color-bg-card: #2e362e;
+  --color-bg-main: #1e2f27; /* Más oscuro y contrastante */
+  --color-bg-card: #27382e; /* Más armonioso con el fondo */
   --color-navbar: #3B4C3B;
-  --color-primary: #3B4C3B;
-  --color-primary-hover: #6FA36F;
+  --color-primary: #45b879; /* Verde vibrante para botones */
+  --color-primary-hover: #3ea36b; /* Hover más oscuro */
   --color-accent: #A3C3A3;
   --color-text-main: #FFFFFF;
   --color-text-secondary: #A3C3A3;
@@ -49,7 +49,7 @@ code {
 .btn-primary {
   background-color: var(--color-primary);
   border-color: var(--color-primary);
-  color: var(--color-accent);
+  color: var(--color-text-main);
 }
 
 .btn-primary:hover {
