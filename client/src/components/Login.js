@@ -91,10 +91,9 @@ const Login = ({ onLogin }) => {
 
         <div className="mt-4 text-center">
           <small style={{ color: 'var(--color-text-secondary)' }}>
-            <strong>Usuarios disponibles:</strong><br />
+            <strong>Iglesia Principe de Paz HM:</strong><br />
             admin1 / admin123<br />
             admin2 / admin123<br />
-            admin3 / admin123
           </small>
         </div>
       </div>
