@@ -212,5 +212,3 @@ const ClientesList = () => {
     </div>
   );
 };
-
-export default ClientesList; 
