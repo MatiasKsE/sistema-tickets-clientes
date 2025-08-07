@@ -37,7 +37,7 @@ const Login = ({ onLogin }) => {
       <div className="login-card">
         <div className="text-center mb-4">
           <h2 className="mb-3">Sistema Legado 2025</h2>
-          <p className="text-muted">Inicia sesión para continuar</p>
+          <p style={{ color: '#c5e3c8' }}>Inicia sesión para continuar</p> {/* ✅ Color verde claro */}
         </div>
 
         {error && (
