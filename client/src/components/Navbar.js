@@ -20,7 +20,7 @@ const Navbar = ({ user, onLogout }) => {
           onClick={onLogout}
           style={{ fontWeight: 'bold', fontSize: '14px' }}
         >
-          🚪 Salir
+          🚪 Cerrar Sesion
         </button>
 
         <button
@@ -39,7 +39,7 @@ const Navbar = ({ user, onLogout }) => {
           <ul className="navbar-nav me-auto">
             <li className="nav-item">
               <Link className={isActive('/')} to="/">
-                📊 Dashboard
+                🏠 Inicio
               </Link>
             </li>
             <li className="nav-item">
