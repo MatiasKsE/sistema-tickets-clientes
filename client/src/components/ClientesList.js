@@ -210,3 +210,7 @@ const ClientesList = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+export default ClientesList; 
