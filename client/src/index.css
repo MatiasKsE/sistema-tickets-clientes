@@ -161,3 +161,33 @@ code {
   height: auto;
   display: block;
 } 
+/* 🔰 FORZAR COLORES VERDES PARA NAVBAR Y BOTONES BOOTSTRAP */
+
+/* Fondo de la navbar y botones .btn-primary */
+.bg-primary,
+.btn-primary,
+.navbar,
+.navbar.bg-primary {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-text-main) !important;
+}
+
+/* Hover, foco y active del botón primary */
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background-color: var(--color-primary-hover) !important;
+  border-color: var(--color-primary-hover) !important;
+  color: var(--color-text-main) !important;
+}
+
+/* Textos que usen .text-primary */
+.text-primary {
+  color: var(--color-accent) !important;
+}
+
+/* Si por alguna razón el fondo se aplica por otras clases */
+.bg-primary {
+  background-color: var(--color-primary) !important;
+}
