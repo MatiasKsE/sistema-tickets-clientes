@@ -13,6 +13,20 @@ const PDFDocument = require('pdfkit');
 const app = express();
 const PORT = process.env.PORT || 8002;
 
+// Configuración de persistencia estable en disco
+const DATA_DIR = process.env.DATA_DIR
+  ? path.resolve(process.env.DATA_DIR)
+  : path.join(__dirname, 'database');
+const CLIENTS_FILE = path.join(DATA_DIR, 'clientes.xlsx');
+const TICKETS_JSON_FILE = path.join(DATA_DIR, 'tickets.json');
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
+const TICKETS_DIR = path.join(DATA_DIR, 'tickets');
+
+// Asegurar directorios
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+if (!fs.existsSync(TICKETS_DIR)) fs.mkdirSync(TICKETS_DIR, { recursive: true });
+
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
@@ -27,8 +41,8 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // Servir archivos estáticos de uploads y tickets
-app.use('/uploads', express.static('uploads'));
-app.use('/tickets', express.static('tickets'));
+app.use('/uploads', express.static(UPLOADS_DIR));
+app.use('/tickets', express.static(TICKETS_DIR));
 
 // Servir archivos estáticos del cliente en producción
 if (process.env.NODE_ENV === 'production') {
@@ -61,11 +75,7 @@ const authenticateToken = (req, res, next) => {
 // Configuración de multer para subir archivos (simplificada)
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // Crear directorio si no existe
-    if (!fs.existsSync('uploads')) {
-      fs.mkdirSync('uploads');
-    }
-    cb(null, 'uploads/');
+    cb(null, UPLOADS_DIR);
   },
   filename: function (req, file, cb) {
     const cleanName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -279,6 +289,7 @@ app.post('/api/generar-ticket', authenticateToken, async (req, res) => {
     };
     
     ticketsGenerados.push(ticketInfo);
+    guardarTickets();
     
     res.json({
       message: 'Ticket generado exitosamente',
@@ -408,7 +419,9 @@ app.get('/api/debug/estado-clientes', (req, res) => {
   res.json({
     clientesEnMemoria: clientes.length,
     clientes: clientes,
-    archivoExcel: fs.existsSync('database/clientes.xlsx'),
+    archivoExcel: fs.existsSync(CLIENTS_FILE),
+    dataDir: DATA_DIR,
+    ticketsJson: fs.existsSync(TICKETS_JSON_FILE),
     timestamp: new Date().toISOString()
   });
 });
@@ -417,12 +430,12 @@ app.get('/api/debug/estado-clientes', (req, res) => {
 async function generarTicket(cliente, imagenTicket) {
   try {
     // Crear directorio tickets si no existe
-    if (!fs.existsSync('tickets')) {
-      fs.mkdirSync('tickets');
+    if (!fs.existsSync(TICKETS_DIR)) {
+      fs.mkdirSync(TICKETS_DIR, { recursive: true });
     }
 
     // Verificar que la imagen existe
-    const imagePath = `uploads/${imagenTicket}`;
+    const imagePath = path.join(UPLOADS_DIR, imagenTicket);
     if (!fs.existsSync(imagePath)) {
       throw new Error(`La imagen ${imagenTicket} no existe`);
     }
@@ -433,7 +446,7 @@ async function generarTicket(cliente, imagenTicket) {
     console.log('Usando dimensiones fijas:', { width, height });
 
     // Crear PDF
-    const ticketPath = `tickets/ticket-${cliente.id}-${Date.now()}.pdf`;
+    const ticketPath = path.join(TICKETS_DIR, `ticket-${cliente.id}-${Date.now()}.pdf`);
     console.log('Creando PDF en:', ticketPath);
     
     const doc = new PDFDocument({ size: [width, height] });
@@ -475,7 +488,7 @@ async function generarTicket(cliente, imagenTicket) {
 // Función para cargar clientes desde Excel
 function cargarDesdeExcel() {
   try {
-    const filePath = 'database/clientes.xlsx';
+    const filePath = CLIENTS_FILE;
     console.log('🔍 Intentando cargar desde:', filePath);
     
     if (fs.existsSync(filePath)) {
@@ -567,20 +580,34 @@ function guardarEnExcel() {
     const sheet = XLSX.utils.json_to_sheet(clientesData);
     XLSX.utils.book_append_sheet(workbook, sheet, 'Clientes');
     
-    XLSX.writeFile(workbook, 'database/clientes.xlsx');
-    console.log(`💾 Guardados ${clientes.length} clientes en Excel`);
+    // Guardado atómico con backup
+    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    const tmp = `${CLIENTS_FILE}.tmp`;
+    // Backup si existe
+    if (fs.existsSync(CLIENTS_FILE)) {
+      const ts = new Date().toISOString().replace(/[:.]/g, '-');
+      fs.copyFileSync(CLIENTS_FILE, path.join(DATA_DIR, `clientes.backup-${ts}.xlsx`));
+    }
+    fs.writeFileSync(tmp, buffer);
+    fs.renameSync(tmp, CLIENTS_FILE);
+    console.log(`💾 Guardados ${clientes.length} clientes en Excel (${CLIENTS_FILE})`);
   } catch (error) {
     console.error('❌ Error guardando en Excel:', error);
   }
 }
 
-// Crear directorio database si no existe
-if (!fs.existsSync('database')) {
-  fs.mkdirSync('database');
-}
-
-// Cargar clientes existentes al iniciar el servidor
+// Cargar datos al iniciar
 cargarDesdeExcel();
+// Intentar cargar tickets persistidos
+try {
+  const TICKETS_JSON_FILE = path.join(DATA_DIR, 'tickets.json');
+  if (fs.existsSync(TICKETS_JSON_FILE)) {
+    const raw = fs.readFileSync(TICKETS_JSON_FILE, 'utf-8');
+    ticketsGenerados = JSON.parse(raw);
+  }
+} catch (_) {
+  // ignorar
+}
 
 // Ruta catch-all para el cliente React en producción
 if (process.env.NODE_ENV === 'production') {
