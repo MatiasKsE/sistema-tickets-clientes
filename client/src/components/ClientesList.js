@@ -17,10 +17,10 @@ const ClientesList = () => {
     try {
       const token = localStorage.getItem('token');
       const axiosConfig = {
-        headers: { Authorization: Bearer ${token} }
+        headers: { Authorization: `Bearer ${token}` }
       };
 
-      const response = await axios.get(${config.API_URL}/api/clientes, axiosConfig);
+      const response = await axios.get(`${config.API_URL}/api/clientes`, axiosConfig);
       setClientes(response.data);
     } catch (error) {
       setError('Error al cargar los clientes');
@@ -147,7 +147,7 @@ const ClientesList = () => {
                   </td>
                   <td>
                     <Link
-                      to={/generar-ticket?clienteId=${cliente.id}}
+                      to={`/generar-ticket?clienteId=${cliente.id}`}
                       className="btn btn-sm"
                       style={{ backgroundColor: 'var(--color-primary-hover)', color: 'var(--color-bg-main)', border: 'none' }}
                       title="Generar Ticket"
