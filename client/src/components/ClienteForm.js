@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import config from '../config';
 
 const ClienteForm = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [formValues, setFormValues] = useState({
     nombreCompleto: '',
     telefono: '',
@@ -14,6 +15,31 @@ const ClienteForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Cargar datos si es edición
+  useEffect(() => {
+    const fetchCliente = async () => {
+      if (!id) return;
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const { data } = await axios.get(`${config.API_URL}/api/clientes/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setFormValues({
+          nombreCompleto: data.nombreCompleto || '',
+          telefono: data.telefono || '',
+          iglesia: data.iglesia || '',
+          cedula: data.cedula || ''
+        });
+      } catch (err) {
+        setError('No se pudo cargar el cliente');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCliente();
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,8 +61,13 @@ const ClienteForm = () => {
     try {
       const token = localStorage.getItem('token');
       const axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post(`${config.API_URL}/api/clientes`, formValues, axiosConfig);
-      setSuccess('✅ Cliente creado exitosamente');
+      if (id) {
+        await axios.put(`${config.API_URL}/api/clientes/${id}`, formValues, axiosConfig);
+        setSuccess('✅ Cliente actualizado exitosamente');
+      } else {
+        await axios.post(`${config.API_URL}/api/clientes`, formValues, axiosConfig);
+        setSuccess('✅ Cliente creado exitosamente');
+      }
       navigate('/clientes');
     } catch (err) {
       setError(err.response?.data?.message || 'Error al crear el cliente');

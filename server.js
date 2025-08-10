@@ -205,6 +205,53 @@ app.get('/api/clientes', authenticateToken, (req, res) => {
   res.json(clientes);
 });
 
+// Obtener un cliente por ID
+app.get('/api/clientes/:id', authenticateToken, (req, res) => {
+  const cliente = clientes.find(c => c.id === req.params.id);
+  if (!cliente) {
+    return res.status(404).json({ message: 'Cliente no encontrado' });
+  }
+  res.json(cliente);
+});
+
+// Actualizar cliente
+app.put('/api/clientes/:id', authenticateToken, (req, res) => {
+  const { nombreCompleto, telefono, iglesia, cedula } = req.body;
+  const clienteIndex = clientes.findIndex(c => c.id === req.params.id);
+
+  if (clienteIndex === -1) {
+    return res.status(404).json({ message: 'Cliente no encontrado' });
+  }
+
+  if (!nombreCompleto || !telefono || !iglesia || !cedula) {
+    return res.status(400).json({ message: 'Todos los campos son requeridos' });
+  }
+
+  const clienteActual = clientes[clienteIndex];
+  const clienteActualizado = {
+    ...clienteActual,
+    nombreCompleto,
+    telefono,
+    iglesia,
+    cedula
+  };
+
+  clientes[clienteIndex] = clienteActualizado;
+  guardarEnExcel();
+  res.json({ message: 'Cliente actualizado exitosamente', cliente: clienteActualizado });
+});
+
+// Eliminar cliente
+app.delete('/api/clientes/:id', authenticateToken, (req, res) => {
+  const clienteIndex = clientes.findIndex(c => c.id === req.params.id);
+  if (clienteIndex === -1) {
+    return res.status(404).json({ message: 'Cliente no encontrado' });
+  }
+  const [eliminado] = clientes.splice(clienteIndex, 1);
+  guardarEnExcel();
+  res.json({ message: 'Cliente eliminado exitosamente', cliente: eliminado });
+});
+
 // Ruta de prueba para healthcheck
 app.get('/api/test', (req, res) => {
   res.json({ message: 'API funcionando correctamente', timestamp: new Date().toISOString() });

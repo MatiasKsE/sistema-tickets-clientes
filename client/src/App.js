@@ -51,6 +51,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/nuevo-cliente" element={<ClienteForm />} />
+            <Route path="/editar-cliente/:id" element={<ClienteForm />} />
             <Route path="/generar-ticket" element={<TicketGenerator />} />
             <Route path="/clientes" element={<ClientesList />} />
             <Route path="*" element={<Navigate to="/" replace />} />

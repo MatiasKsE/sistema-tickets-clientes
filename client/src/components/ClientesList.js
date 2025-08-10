@@ -30,6 +30,20 @@ const ClientesList = () => {
     }
   };
 
+  const handleEliminarCliente = async (id) => {
+    if (!window.confirm('¿Estás seguro de eliminar este cliente?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${config.API_URL}/api/clientes/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setClientes(prev => prev.filter(c => c.id !== id));
+    } catch (err) {
+      alert('No se pudo eliminar el cliente');
+      console.error(err);
+    }
+  };
+
   const filteredClientes = clientes.filter(cliente =>
     cliente.nombreCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cliente.iglesia.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -154,6 +168,20 @@ const ClientesList = () => {
                     >
                       🎫 Ticket
                     </Link>
+                    <Link
+                      to={`/editar-cliente/${cliente.id}`}
+                      className="btn btn-sm btn-warning ms-1"
+                      title="Editar Cliente"
+                    >
+                      📝 Editar
+                    </Link>
+                    <button
+                      className="btn btn-sm btn-danger ms-1"
+                      onClick={() => handleEliminarCliente(cliente.id)}
+                      title="Eliminar Cliente"
+                    >
+                      🗑️ Eliminar
+                    </button>
                   </td>
                 </tr>
               ))}
