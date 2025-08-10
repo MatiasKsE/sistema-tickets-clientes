@@ -426,6 +426,95 @@ app.get('/api/debug/estado-clientes', (req, res) => {
   });
 });
 
+// Helpers de backups
+function listarBackupsClientes() {
+  try {
+    const files = fs.readdirSync(DATA_DIR);
+    return files
+      .filter(name => name.startsWith('clientes.backup-') && name.endsWith('.xlsx'))
+      .map(name => {
+        const full = path.join(DATA_DIR, name);
+        const stat = fs.statSync(full);
+        return { filename: name, size: stat.size, mtime: stat.mtime.toISOString() };
+      })
+      .sort((a, b) => (a.mtime < b.mtime ? 1 : -1));
+  } catch (e) {
+    console.error('Error listando backups:', e);
+    return [];
+  }
+}
+
+// Administración: exportar y backups (protegido)
+app.get('/api/admin/export/clientes', authenticateToken, (req, res) => {
+  if (!fs.existsSync(CLIENTS_FILE)) {
+    return res.status(404).json({ message: 'Archivo clientes.xlsx no existe' });
+  }
+  res.download(CLIENTS_FILE, 'clientes.xlsx');
+});
+
+app.get('/api/admin/export/tickets', authenticateToken, (req, res) => {
+  if (!fs.existsSync(TICKETS_JSON_FILE)) {
+    return res.status(404).json({ message: 'Archivo tickets.json no existe' });
+  }
+  res.download(TICKETS_JSON_FILE, 'tickets.json');
+});
+
+app.get('/api/admin/backups', authenticateToken, (req, res) => {
+  res.json({ backups: listarBackupsClientes() });
+});
+
+app.post('/api/admin/backup-now', authenticateToken, (req, res) => {
+  try {
+    if (!fs.existsSync(CLIENTS_FILE)) {
+      return res.status(404).json({ message: 'No existe clientes.xlsx para respaldar' });
+    }
+    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupPath = path.join(DATA_DIR, `clientes.backup-${ts}.xlsx`);
+    fs.copyFileSync(CLIENTS_FILE, backupPath);
+    return res.json({ message: 'Backup creado', backup: path.basename(backupPath) });
+  } catch (e) {
+    console.error('Error creando backup:', e);
+    return res.status(500).json({ message: 'Error creando backup' });
+  }
+});
+
+app.post('/api/admin/backups/restore', authenticateToken, (req, res) => {
+  try {
+    const { filename } = req.body || {};
+    if (!filename || !filename.startsWith('clientes.backup-') || !filename.endsWith('.xlsx')) {
+      return res.status(400).json({ message: 'filename inválido' });
+    }
+    const src = path.join(DATA_DIR, filename);
+    if (!fs.existsSync(src)) {
+      return res.status(404).json({ message: 'Backup no encontrado' });
+    }
+    fs.copyFileSync(src, CLIENTS_FILE);
+    cargarDesdeExcel();
+    return res.json({ message: 'Restaurado desde backup y recargado en memoria' });
+  } catch (e) {
+    console.error('Error restaurando backup:', e);
+    return res.status(500).json({ message: 'Error restaurando backup' });
+  }
+});
+
+app.delete('/api/admin/backups/:filename', authenticateToken, (req, res) => {
+  try {
+    const { filename } = req.params;
+    if (!filename || !filename.startsWith('clientes.backup-') || !filename.endsWith('.xlsx')) {
+      return res.status(400).json({ message: 'filename inválido' });
+    }
+    const target = path.join(DATA_DIR, filename);
+    if (!fs.existsSync(target)) {
+      return res.status(404).json({ message: 'Backup no encontrado' });
+    }
+    fs.unlinkSync(target);
+    return res.json({ message: 'Backup eliminado' });
+  } catch (e) {
+    console.error('Error eliminando backup:', e);
+    return res.status(500).json({ message: 'Error eliminando backup' });
+  }
+});
+
 // Reemplazar la función generarTicket para PDF
 async function generarTicket(cliente, imagenTicket) {
   try {
