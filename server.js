@@ -277,6 +277,11 @@ app.post('/api/generar-ticket', authenticateToken, async (req, res) => {
   }
 
   try {
+    if (!imagenTicket) {
+      return res.status(400).json({ message: 'imagenTicket es requerido' });
+    }
+    const expectedPath = require('path').join(TICKETS_DIR, `ticket-${cliente.id}-${Date.now()}.pdf`);
+    console.log('🧪 Generar ticket para:', { clienteId, imagenTicket, UPLOADS_DIR, TICKETS_DIR });
     const ticketPath = await generarTicket(cliente, imagenTicket);
     
     const ticketInfo = {
@@ -297,7 +302,7 @@ app.post('/api/generar-ticket', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Error generando ticket:', error);
-    res.status(500).json({ message: 'Error generando ticket' });
+    res.status(500).json({ message: 'Error generando ticket', detail: error.message });
   }
 });
 
@@ -515,6 +520,14 @@ app.delete('/api/admin/backups/:filename', authenticateToken, (req, res) => {
   }
 });
 
+// Debug: verificar si un archivo subido existe por nombre
+app.get('/api/debug/exists-upload/:filename', (req, res) => {
+  const { filename } = req.params;
+  const fullPath = path.join(UPLOADS_DIR, filename);
+  const exists = fs.existsSync(fullPath);
+  return res.json({ exists, path: fullPath, dataDir: DATA_DIR });
+});
+
 // Reemplazar la función generarTicket para PDF
 async function generarTicket(cliente, imagenTicket) {
   try {
@@ -685,11 +698,21 @@ function guardarEnExcel() {
   }
 }
 
+// Persistir tickets generados en JSON
+function guardarTickets() {
+  try {
+    const payload = JSON.stringify(ticketsGenerados, null, 2);
+    fs.writeFileSync(TICKETS_JSON_FILE, payload, 'utf-8');
+    console.log(`💾 Guardados ${ticketsGenerados.length} tickets en ${TICKETS_JSON_FILE}`);
+  } catch (error) {
+    console.error('❌ Error guardando tickets:', error);
+  }
+}
+
 // Cargar datos al iniciar
 cargarDesdeExcel();
 // Intentar cargar tickets persistidos
 try {
-  const TICKETS_JSON_FILE = path.join(DATA_DIR, 'tickets.json');
   if (fs.existsSync(TICKETS_JSON_FILE)) {
     const raw = fs.readFileSync(TICKETS_JSON_FILE, 'utf-8');
     ticketsGenerados = JSON.parse(raw);

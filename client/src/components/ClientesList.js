@@ -8,6 +8,9 @@ const ClientesList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [clienteAEliminar, setClienteAEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
 
   useEffect(() => {
     fetchClientes();
@@ -31,17 +34,35 @@ const ClientesList = () => {
   };
 
   const handleEliminarCliente = async (id) => {
-    if (!window.confirm('¿Estás seguro de eliminar este cliente?')) return;
     try {
+      setEliminando(true);
       const token = localStorage.getItem('token');
       await axios.delete(`${config.API_URL}/api/clientes/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setClientes(prev => prev.filter(c => c.id !== id));
+      setShowConfirm(false);
+      setClienteAEliminar(null);
     } catch (err) {
       alert('No se pudo eliminar el cliente');
       console.error(err);
+    } finally {
+      setEliminando(false);
     }
+  };
+
+  const solicitarConfirmacion = (cliente) => {
+    setClienteAEliminar(cliente);
+    setShowConfirm(true);
+  };
+  const cancelarConfirmacion = () => {
+    if (eliminando) return;
+    setShowConfirm(false);
+    setClienteAEliminar(null);
+  };
+  const confirmarEliminacion = () => {
+    if (!clienteAEliminar) return;
+    handleEliminarCliente(clienteAEliminar.id);
   };
 
   const filteredClientes = clientes.filter(cliente =>
@@ -177,7 +198,7 @@ const ClientesList = () => {
                     </Link>
                     <button
                       className="btn btn-sm btn-danger ms-1"
-                      onClick={() => handleEliminarCliente(cliente.id)}
+                      onClick={() => solicitarConfirmacion(cliente)}
                       title="Eliminar Cliente"
                     >
                       🗑️ Eliminar
@@ -237,6 +258,38 @@ const ClientesList = () => {
           </div>
         </div>
       </div>
+
+      {showConfirm && (
+        <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content" style={{ backgroundColor: 'var(--color-bg-card)', color: 'var(--color-text-main)' }}>
+              <div className="modal-header">
+                <h5 className="modal-title">Confirmar eliminación</h5>
+                <button type="button" className="btn-close" aria-label="Close" onClick={cancelarConfirmacion}></button>
+              </div>
+              <div className="modal-body">
+                <p>¿Seguro que deseas eliminar al cliente
+                  {clienteAEliminar ? (
+                    <>
+                      {' '}<strong>{clienteAEliminar.nombreCompleto}</strong>
+                      {' '}(<code>{clienteAEliminar.id}</code>)
+                    </>
+                  ) : null}
+                  ? Esta acción no se puede deshacer.
+                </p>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={cancelarConfirmacion} disabled={eliminando}>
+                  Cancelar
+                </button>
+                <button type="button" className="btn btn-danger" onClick={confirmarEliminacion} disabled={eliminando}>
+                  {eliminando ? 'Eliminando...' : 'Eliminar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
