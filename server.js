@@ -121,7 +121,7 @@ const users = [
   },
   {
     id: 3,
-    username: 'Dverdina',
+    username: 'Admin',
     password: '$2a$10$cdiikVIiDq6R8V2TSzB6rOReikHNQlXrqjorisoeB9URKDph7h5Tu', // Legado2025-.
     role: 'admin'
   },
