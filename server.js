@@ -410,11 +410,7 @@ app.get('/api/test', (req, res) => {
 });
 
 // Ruta temporal para borrar todos los clientes (¡bórrala después de usarla!)
-app.post('/api/debug/vaciar-clientes', (req, res) => {
-  clientes = [];
-  guardarEnExcel();
-  res.json({ message: 'Todos los clientes han sido eliminados.' });
-});
+
 
 // Ruta para recargar clientes desde Excel
 app.post('/api/debug/recargar-clientes', authenticateToken, (req, res) => {
