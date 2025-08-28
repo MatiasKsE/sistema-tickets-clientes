@@ -121,7 +121,7 @@ const users = [
   },
   {
     id: 3,
-    username: 'Dverdina',
+    username: 'Admin',
     password: '$2a$10$cdiikVIiDq6R8V2TSzB6rOReikHNQlXrqjorisoeB9URKDph7h5Tu', // Legado2025-.
     role: 'admin'
   },
@@ -410,21 +410,55 @@ app.get('/api/test', (req, res) => {
 });
 
 // Ruta temporal para borrar todos los clientes (¡bórrala después de usarla!)
-app.post('/api/debug/vaciar-clientes', (req, res) => {
-  clientes = [];
-  guardarEnExcel();
-  res.json({ message: 'Todos los clientes han sido eliminados.' });
-});
+
 
 // Ruta para recargar clientes desde Excel
 app.post('/api/debug/recargar-clientes', authenticateToken, (req, res) => {
   const clientesAntes = clientes.length;
-  cargarDesdeExcel();
+  const clientesAntesData = [...clientes]; // Copia de los clientes antes
+  
+  try {
+    // Leer el archivo Excel directamente
+    if (fs.existsSync(CLIENTS_FILE)) {
+      const workbook = XLSX.readFile(CLIENTS_FILE);
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(worksheet);
+      
+      console.log('📊 Datos raw del Excel para recarga:', data);
+      
+      // Filtrar registros válidos
+      const clientesValidos = data.filter(row => row['Nombre Completo'] && row['Nombre Completo'].trim() !== '');
+      
+      if (clientesValidos.length > 0) {
+        clientes = clientesValidos.map(row => ({
+          id: row.ID || generarIDUnico(),
+          nombreCompleto: row['Nombre Completo'],
+          telefono: row['Teléfono'] || '',
+          iglesia: row['Iglesia'] || '',
+          cedula: row['Cédula'] || '',
+          fechaCreacion: row['Fecha Creación'] || new Date().toISOString(),
+          creadoPor: row['Creado Por'] || 'Sistema'
+        }));
+        
+        console.log(`✅ Recargados ${clientes.length} clientes desde Excel`);
+      } else {
+        console.log('⚠️  No hay clientes válidos en el archivo Excel para recargar');
+      }
+    } else {
+      console.log('⚠️  Archivo Excel no encontrado para recarga');
+    }
+  } catch (error) {
+    console.error('❌ Error recargando clientes:', error);
+  }
+  
   res.json({ 
     message: 'Clientes recargados desde Excel',
     clientesAntes: clientesAntes,
     clientesDespues: clientes.length,
-    clientesCargados: clientes.length 
+    clientesCargados: clientes.length,
+    clientesAntesData: clientesAntesData,
+    clientesDespuesData: clientes
   });
 });
 
@@ -464,13 +498,27 @@ app.get('/api/debug/estado-clientes', (req, res) => {
   const excelStats = fs.existsSync(CLIENTS_FILE) ? fs.statSync(CLIENTS_FILE) : null;
   const jsonStats = fs.existsSync(TICKETS_JSON_FILE) ? fs.statSync(TICKETS_JSON_FILE) : null;
   
+  // Intentar leer el archivo Excel para ver qué contiene
+  let excelContent = null;
+  try {
+    if (fs.existsSync(CLIENTS_FILE)) {
+      const workbook = XLSX.readFile(CLIENTS_FILE);
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      excelContent = XLSX.utils.sheet_to_json(worksheet);
+    }
+  } catch (error) {
+    excelContent = { error: error.message };
+  }
+  
   res.json({
     clientesEnMemoria: clientes.length,
     clientes: clientes,
     archivoExcel: {
       existe: fs.existsSync(CLIENTS_FILE),
       tamaño: excelStats ? excelStats.size : 0,
-      ultimaModificacion: excelStats ? excelStats.mtime : null
+      ultimaModificacion: excelStats ? excelStats.mtime : null,
+      contenido: excelContent
     },
     dataDir: DATA_DIR,
     ticketsJson: {
@@ -573,6 +621,36 @@ app.delete('/api/admin/backups/:filename', authenticateToken, (req, res) => {
   }
 });
 
+// Ruta para restaurar clientes desde memoria al archivo Excel
+app.post('/api/debug/restaurar-desde-memoria', authenticateToken, (req, res) => {
+  try {
+    const clientesAntes = clientes.length;
+    
+    if (clientes.length > 0) {
+      // Guardar los clientes actuales en memoria al archivo Excel
+      guardarEnExcel();
+      console.log(`✅ Restaurados ${clientes.length} clientes desde memoria al archivo Excel`);
+      
+      res.json({
+        message: 'Clientes restaurados desde memoria al archivo Excel',
+        clientesRestaurados: clientes.length,
+        clientes: clientes
+      });
+    } else {
+      res.status(400).json({
+        message: 'No hay clientes en memoria para restaurar',
+        clientesEnMemoria: clientes.length
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error restaurando desde memoria:', error);
+    res.status(500).json({
+      message: 'Error restaurando desde memoria',
+      error: error.message
+    });
+  }
+});
+
 // Debug: verificar si un archivo subido existe por nombre
 app.get('/api/debug/exists-upload/:filename', (req, res) => {
   const { filename } = req.params;
@@ -657,23 +735,26 @@ function cargarDesdeExcel() {
       // Filtrar registros válidos (más flexible - solo requiere nombre)
       const clientesValidos = data.filter(row => row['Nombre Completo'] && row['Nombre Completo'].trim() !== '');
       
-      clientes = clientesValidos.map(row => ({
-        id: row.ID || generarIDUnico(),
-        nombreCompleto: row['Nombre Completo'],
-        telefono: row['Teléfono'] || '',
-        iglesia: row['Iglesia'] || '',
-        cedula: row['Cédula'] || '',
-        fechaCreacion: row['Fecha Creación'] || new Date().toISOString(),
-        creadoPor: row['Creado Por'] || 'Sistema'
-      }));
-      
-      console.log(`✅ Cargados ${clientes.length} clientes válidos desde Excel`);
-      console.log('📋 Clientes procesados:', clientes);
-      
-      // NO crear cliente de ejemplo automáticamente - solo si el archivo no existe
-      if (clientes.length === 0) {
-        console.log('⚠️  No hay clientes en el archivo Excel, pero manteniendo datos existentes en memoria');
-        // No hacer nada - mantener los clientes que ya están en memoria
+      // Solo cargar si hay datos válidos y no hay clientes en memoria
+      if (clientesValidos.length > 0) {
+        clientes = clientesValidos.map(row => ({
+          id: row.ID || generarIDUnico(),
+          nombreCompleto: row['Nombre Completo'],
+          telefono: row['Teléfono'] || '',
+          iglesia: row['Iglesia'] || '',
+          cedula: row['Cédula'] || '',
+          fechaCreacion: row['Fecha Creación'] || new Date().toISOString(),
+          creadoPor: row['Creado Por'] || 'Sistema'
+        }));
+        
+        console.log(`✅ Cargados ${clientes.length} clientes válidos desde Excel`);
+        console.log('📋 Clientes procesados:', clientes);
+      } else {
+        console.log('⚠️  No hay clientes válidos en el archivo Excel');
+        // Mantener los clientes existentes en memoria si los hay
+        if (clientes.length > 0) {
+          console.log(`🔄 Manteniendo ${clientes.length} clientes existentes en memoria`);
+        }
       }
     } else {
       console.log('⚠️  Archivo de clientes no encontrado, creando archivo vacío...');

@@ -6,7 +6,7 @@ yarn-error.log*
 
 # Production builds
 client/build/
-build/
+dist/
 
 # Environment variables
 .env
@@ -14,6 +14,13 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Database files (sensitive data)
+database/clientes.xlsx
+database/tickets.json
+database/uploads/
+database/tickets/
+database/*.backup-*.xlsx
 
 # Logs
 logs
@@ -32,7 +39,6 @@ coverage/
 .nyc_output
 
 # Dependency directories
-node_modules/
 jspm_packages/
 
 # Optional npm cache directory
@@ -65,14 +71,6 @@ jspm_packages/
 ehthumbs.db
 Thumbs.db
 
-# Uploaded files (opcional - puedes querer mantener estos)
-uploads/*
-!uploads/.gitkeep
-
-# Generated tickets (opcional - puedes querer mantener estos)
-tickets/*
-!tickets/.gitkeep
-
-# Database files (opcional - puedes querer mantener estos)
-database/*
-!database/.gitkeep 
+# Temporary files
+*.tmp
+*.temp 
