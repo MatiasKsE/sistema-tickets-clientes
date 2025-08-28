@@ -131,6 +131,12 @@ const users = [
     password: '$2a$10$cdiikVIiDq6R8V2TSzB6rOReikHNQlXrqjorisoeB9URKDph7h5Tu', // Legado2025-.
     role: 'admin'
   }
+   {
+    id: 5,
+    username: 'Mvillagra',
+    password: '$2a$10$cdiikVIiDq6R8V2TSzB6rOReikHNQlXrqjorisoeB9URKDph7h5Tu', // Legado2025-.
+    role: 'admin'
+  }
 ];
 
 // Para generar nuevas contraseñas hasheadas, puedes usar esta función:
