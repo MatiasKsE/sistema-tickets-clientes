@@ -130,6 +130,12 @@ const users = [
     username: 'Erolon',
     password: '$2a$10$cdiikVIiDq6R8V2TSzB6rOReikHNQlXrqjorisoeB9URKDph7h5Tu', // Legado2025-.
     role: 'admin'
+  },
+  {
+    id: 5,
+    username: 'Mvillagra',
+    password: '$2a$10$cdiikVIiDq6R8V2TSzB6rOReikHNQlXrqjorisoeB9URKDph7h5Tu', // Legado2025-.
+    role: 'admin'
   }
 ];
 
@@ -412,22 +418,69 @@ app.post('/api/debug/vaciar-clientes', (req, res) => {
 
 // Ruta para recargar clientes desde Excel
 app.post('/api/debug/recargar-clientes', authenticateToken, (req, res) => {
+  const clientesAntes = clientes.length;
   cargarDesdeExcel();
   res.json({ 
     message: 'Clientes recargados desde Excel',
+    clientesAntes: clientesAntes,
+    clientesDespues: clientes.length,
     clientesCargados: clientes.length 
   });
 });
 
+// Ruta para sincronizar datos (memoria -> archivo)
+app.post('/api/debug/sincronizar-datos', authenticateToken, (req, res) => {
+  try {
+    const clientesAntes = clientes.length;
+    const ticketsAntes = ticketsGenerados.length;
+    
+    // Guardar datos actuales en memoria a archivos
+    guardarEnExcel();
+    guardarTickets();
+    
+    res.json({
+      message: 'Datos sincronizados exitosamente',
+      clientes: {
+        antes: clientesAntes,
+        despues: clientes.length
+      },
+      tickets: {
+        antes: ticketsAntes,
+        despues: ticketsGenerados.length
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error sincronizando datos:', error);
+    res.status(500).json({
+      message: 'Error sincronizando datos',
+      error: error.message
+    });
+  }
+});
+
 // Ruta para verificar estado actual de clientes
 app.get('/api/debug/estado-clientes', (req, res) => {
+  const excelStats = fs.existsSync(CLIENTS_FILE) ? fs.statSync(CLIENTS_FILE) : null;
+  const jsonStats = fs.existsSync(TICKETS_JSON_FILE) ? fs.statSync(TICKETS_JSON_FILE) : null;
+  
   res.json({
     clientesEnMemoria: clientes.length,
     clientes: clientes,
-    archivoExcel: fs.existsSync(CLIENTS_FILE),
+    archivoExcel: {
+      existe: fs.existsSync(CLIENTS_FILE),
+      tamaño: excelStats ? excelStats.size : 0,
+      ultimaModificacion: excelStats ? excelStats.mtime : null
+    },
     dataDir: DATA_DIR,
-    ticketsJson: fs.existsSync(TICKETS_JSON_FILE),
-    timestamp: new Date().toISOString()
+    ticketsJson: {
+      existe: fs.existsSync(TICKETS_JSON_FILE),
+      tamaño: jsonStats ? jsonStats.size : 0,
+      ultimaModificacion: jsonStats ? jsonStats.mtime : null
+    },
+    ticketsEnMemoria: ticketsGenerados.length,
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
   });
 });
 
@@ -601,11 +654,11 @@ function cargarDesdeExcel() {
       
       console.log('📊 Datos raw del Excel:', data);
       
-      // Filtrar solo registros válidos (con ID y nombre)
-      const clientesValidos = data.filter(row => row.ID && row['Nombre Completo']);
+      // Filtrar registros válidos (más flexible - solo requiere nombre)
+      const clientesValidos = data.filter(row => row['Nombre Completo'] && row['Nombre Completo'].trim() !== '');
       
       clientes = clientesValidos.map(row => ({
-        id: row.ID,
+        id: row.ID || generarIDUnico(),
         nombreCompleto: row['Nombre Completo'],
         telefono: row['Teléfono'] || '',
         iglesia: row['Iglesia'] || '',
@@ -617,51 +670,22 @@ function cargarDesdeExcel() {
       console.log(`✅ Cargados ${clientes.length} clientes válidos desde Excel`);
       console.log('📋 Clientes procesados:', clientes);
       
-      // Si no hay clientes válidos, crear uno de ejemplo
+      // NO crear cliente de ejemplo automáticamente - solo si el archivo no existe
       if (clientes.length === 0) {
-        console.log('⚠️  No hay clientes válidos, creando cliente de ejemplo...');
-        const clienteEjemplo = {
-          id: generarIDUnico(),
-          nombreCompleto: 'Cliente de Ejemplo',
-          telefono: '1234567890',
-          iglesia: 'Iglesia de Ejemplo',
-          cedula: '123456789',
-          fechaCreacion: new Date().toISOString(),
-          creadoPor: 'Sistema'
-        };
-        clientes.push(clienteEjemplo);
-        guardarEnExcel(); // Guardar el cliente de ejemplo
-        console.log('✅ Cliente de ejemplo creado y guardado');
+        console.log('⚠️  No hay clientes en el archivo Excel, pero manteniendo datos existentes en memoria');
+        // No hacer nada - mantener los clientes que ya están en memoria
       }
     } else {
-      console.log('⚠️  Archivo de clientes no encontrado, creando archivo con cliente de ejemplo...');
-      const clienteEjemplo = {
-        id: generarIDUnico(),
-        nombreCompleto: 'Cliente de Ejemplo',
-        telefono: '1234567890',
-        iglesia: 'Iglesia de Ejemplo',
-        cedula: '123456789',
-        fechaCreacion: new Date().toISOString(),
-        creadoPor: 'Sistema'
-      };
-      clientes = [clienteEjemplo];
+      console.log('⚠️  Archivo de clientes no encontrado, creando archivo vacío...');
+      // Solo crear el archivo vacío, no agregar cliente de ejemplo
       guardarEnExcel();
-      console.log('✅ Archivo creado con cliente de ejemplo');
+      console.log('✅ Archivo creado vacío');
     }
   } catch (error) {
     console.error('❌ Error cargando clientes desde Excel:', error);
-    console.log('🛠️  Creando cliente de respaldo...');
-    const clienteRespaldo = {
-      id: generarIDUnico(),
-      nombreCompleto: 'Cliente de Respaldo',
-      telefono: '1234567890',
-      iglesia: 'Iglesia de Respaldo',
-      cedula: '123456789',
-      fechaCreacion: new Date().toISOString(),
-      creadoPor: 'Sistema'
-    };
-    clientes = [clienteRespaldo];
-    guardarEnExcel();
+    console.log('🛠️  Manteniendo clientes existentes en memoria...');
+    // NO crear cliente de respaldo - mantener los datos existentes
+    // Solo loggear el error pero no resetear los datos
   }
 }
 
@@ -709,17 +733,77 @@ function guardarTickets() {
   }
 }
 
+// Función para verificar integridad de datos
+function verificarIntegridadDatos() {
+  console.log('🔍 Verificando integridad de datos...');
+  console.log(`📊 Clientes en memoria: ${clientes.length}`);
+  console.log(`🎫 Tickets en memoria: ${ticketsGenerados.length}`);
+  
+  // Verificar que el archivo Excel existe y tiene contenido
+  if (fs.existsSync(CLIENTS_FILE)) {
+    const stats = fs.statSync(CLIENTS_FILE);
+    console.log(`📁 Archivo Excel: ${stats.size} bytes, modificado: ${stats.mtime}`);
+  } else {
+    console.log('⚠️  Archivo Excel no encontrado');
+  }
+  
+  // Verificar que el archivo JSON de tickets existe
+  if (fs.existsSync(TICKETS_JSON_FILE)) {
+    const stats = fs.statSync(TICKETS_JSON_FILE);
+    console.log(`📄 Archivo JSON tickets: ${stats.size} bytes, modificado: ${stats.mtime}`);
+  } else {
+    console.log('⚠️  Archivo JSON tickets no encontrado');
+  }
+}
+
 // Cargar datos al iniciar
+console.log('🚀 Iniciando carga de datos...');
 cargarDesdeExcel();
+
 // Intentar cargar tickets persistidos
 try {
   if (fs.existsSync(TICKETS_JSON_FILE)) {
     const raw = fs.readFileSync(TICKETS_JSON_FILE, 'utf-8');
     ticketsGenerados = JSON.parse(raw);
+    console.log(`✅ Cargados ${ticketsGenerados.length} tickets desde JSON`);
   }
-} catch (_) {
-  // ignorar
+} catch (error) {
+  console.error('❌ Error cargando tickets desde JSON:', error.message);
+  ticketsGenerados = [];
 }
+
+// Verificar integridad después de la carga
+verificarIntegridadDatos();
+
+// Función para hacer backup automático cada cierto tiempo
+function hacerBackupAutomatico() {
+  try {
+    if (fs.existsSync(CLIENTS_FILE)) {
+      const ts = new Date().toISOString().replace(/[:.]/g, '-');
+      const backupPath = path.join(DATA_DIR, `clientes.backup-auto-${ts}.xlsx`);
+      fs.copyFileSync(CLIENTS_FILE, backupPath);
+      console.log(`💾 Backup automático creado: ${path.basename(backupPath)}`);
+      
+      // Mantener solo los últimos 5 backups automáticos
+      const backups = fs.readdirSync(DATA_DIR)
+        .filter(name => name.startsWith('clientes.backup-auto-'))
+        .sort()
+        .reverse();
+      
+      if (backups.length > 5) {
+        backups.slice(5).forEach(backup => {
+          fs.unlinkSync(path.join(DATA_DIR, backup));
+          console.log(`🗑️  Eliminado backup antiguo: ${backup}`);
+        });
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error en backup automático:', error.message);
+  }
+}
+
+// Hacer backup automático cada 30 minutos
+setInterval(hacerBackupAutomatico, 30 * 60 * 1000);
 
 // Ruta catch-all para el cliente React en producción
 if (process.env.NODE_ENV === 'production') {
