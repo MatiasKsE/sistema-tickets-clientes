@@ -199,6 +199,7 @@ app.post('/api/clientes', authenticateToken, (req, res) => {
     telefono,
     iglesia,
     cedula,
+    pagado: false, // Nuevo campo para estado de pago
     fechaCreacion: new Date().toISOString(),
     creadoPor: req.user.username
   };
@@ -232,7 +233,7 @@ app.get('/api/clientes/:id', authenticateToken, (req, res) => {
 
 // Actualizar cliente
 app.put('/api/clientes/:id', authenticateToken, (req, res) => {
-  const { nombreCompleto, telefono, iglesia, cedula } = req.body;
+  const { nombreCompleto, telefono, iglesia, cedula, pagado } = req.body;
   const clienteIndex = clientes.findIndex(c => c.id === req.params.id);
 
   if (clienteIndex === -1) {
@@ -249,7 +250,8 @@ app.put('/api/clientes/:id', authenticateToken, (req, res) => {
     nombreCompleto,
     telefono,
     iglesia,
-    cedula
+    cedula,
+    pagado: pagado !== undefined ? pagado : clienteActual.pagado
   };
 
   clientes[clienteIndex] = clienteActualizado;
@@ -266,6 +268,28 @@ app.delete('/api/clientes/:id', authenticateToken, (req, res) => {
   const [eliminado] = clientes.splice(clienteIndex, 1);
   guardarEnExcel();
   res.json({ message: 'Cliente eliminado exitosamente', cliente: eliminado });
+});
+
+// Ruta para actualizar estado de pago
+app.patch('/api/clientes/:id/pago', authenticateToken, (req, res) => {
+  const { pagado } = req.body;
+  const clienteIndex = clientes.findIndex(c => c.id === req.params.id);
+  
+  if (clienteIndex === -1) {
+    return res.status(404).json({ message: 'Cliente no encontrado' });
+  }
+  
+  if (typeof pagado !== 'boolean') {
+    return res.status(400).json({ message: 'El campo pagado debe ser true o false' });
+  }
+  
+  clientes[clienteIndex].pagado = pagado;
+  guardarEnExcel();
+  
+  res.json({ 
+    message: `Cliente ${pagado ? 'marcado como pagado' : 'marcado como no pagado'} exitosamente`, 
+    cliente: clientes[clienteIndex] 
+  });
 });
 
 // Ruta de prueba para healthcheck
@@ -743,6 +767,7 @@ function cargarDesdeExcel() {
           telefono: row['Teléfono'] || '',
           iglesia: row['Iglesia'] || '',
           cedula: row['Cédula'] || '',
+          pagado: row['Pagado'] === 'Sí' || row['Pagado'] === true || false,
           fechaCreacion: row['Fecha Creación'] || new Date().toISOString(),
           creadoPor: row['Creado Por'] || 'Sistema'
         }));
@@ -780,6 +805,7 @@ function guardarEnExcel() {
       'Teléfono': cliente.telefono,
       'Iglesia': cliente.iglesia,
       'Cédula': cliente.cedula,
+      'Pagado': cliente.pagado ? 'Sí' : 'No',
       'Fecha Creación': cliente.fechaCreacion,
       'Creado Por': cliente.creadoPor
     }));

@@ -11,6 +11,7 @@ const ClientesList = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [clienteAEliminar, setClienteAEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
+  const [actualizandoPago, setActualizandoPago] = useState(false);
 
   useEffect(() => {
     fetchClientes();
@@ -63,6 +64,32 @@ const ClientesList = () => {
   const confirmarEliminacion = () => {
     if (!clienteAEliminar) return;
     handleEliminarCliente(clienteAEliminar.id);
+  };
+
+  const handleTogglePago = async (cliente) => {
+    try {
+      setActualizandoPago(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.patch(
+        `${config.API_URL}/api/clientes/${cliente.id}/pago`,
+        { pagado: !cliente.pagado },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      
+      // Actualizar la lista de clientes
+      setClientes(prev => prev.map(c => 
+        c.id === cliente.id ? { ...c, pagado: !c.pagado } : c
+      ));
+      
+      console.log(response.data.message);
+    } catch (error) {
+      console.error('Error actualizando estado de pago:', error);
+      alert('Error al actualizar el estado de pago');
+    } finally {
+      setActualizandoPago(false);
+    }
   };
 
   const filteredClientes = clientes.filter(cliente =>
@@ -153,6 +180,7 @@ const ClientesList = () => {
                 <th>🆔 Cédula</th>
                 <th>📅 Fecha Creación</th>
                 <th>👤 Creado Por</th>
+                <th>💰 Pago</th>
                 <th>🎫 Acciones</th>
               </tr>
             </thead>
@@ -179,6 +207,26 @@ const ClientesList = () => {
                   </td>
                   <td>
                     <span className="badge" style={{ backgroundColor: 'var(--color-primary-hover)', color: 'var(--color-bg-main)' }}>{cliente.creadoPor}</span>
+                  </td>
+                  <td>
+                    <button
+                      className={`btn btn-sm ${cliente.pagado ? 'btn-success' : 'btn-outline-secondary'}`}
+                      onClick={() => handleTogglePago(cliente)}
+                      disabled={actualizandoPago}
+                      title={cliente.pagado ? 'Marcar como no pagado' : 'Marcar como pagado'}
+                      style={{ 
+                        minWidth: '80px',
+                        fontSize: '0.8rem'
+                      }}
+                    >
+                      {actualizandoPago ? (
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      ) : (
+                        <>
+                          {cliente.pagado ? '✅ Pagado' : '❌ Pendiente'}
+                        </>
+                      )}
+                    </button>
                   </td>
                   <td>
                     <Link
@@ -218,13 +266,29 @@ const ClientesList = () => {
           </div>
           <div className="card-body">
             <div className="row">
-              <div className="col-md-3">
+              <div className="col-md-2">
                 <div className="text-center">
                   <h4 style={{ color: 'var(--color-accent)' }}>{clientes.length}</h4>
                   <small style={{ color: 'var(--color-text-secondary)' }}>Total Clientes</small>
                 </div>
               </div>
-              <div className="col-md-3">
+              <div className="col-md-2">
+                <div className="text-center">
+                  <h4 style={{ color: 'var(--color-success)' }}>
+                    {clientes.filter(c => c.pagado).length}
+                  </h4>
+                  <small style={{ color: 'var(--color-text-secondary)' }}>Pagados</small>
+                </div>
+              </div>
+              <div className="col-md-2">
+                <div className="text-center">
+                  <h4 style={{ color: 'var(--color-warning)' }}>
+                    {clientes.filter(c => !c.pagado).length}
+                  </h4>
+                  <small style={{ color: 'var(--color-text-secondary)' }}>Pendientes</small>
+                </div>
+              </div>
+              <div className="col-md-2">
                 <div className="text-center">
                   <h4 style={{ color: 'var(--color-primary-hover)' }}>
                     {clientes.filter(c => c.iglesia.toLowerCase().includes('bautista')).length}
@@ -232,7 +296,7 @@ const ClientesList = () => {
                   <small style={{ color: 'var(--color-text-secondary)' }}>Iglesias Bautistas</small>
                 </div>
               </div>
-              <div className="col-md-3">
+              <div className="col-md-2">
                 <div className="text-center">
                   <h4 style={{ color: 'var(--color-accent)' }}>
                     {new Set(clientes.map(c => c.iglesia)).size}
@@ -240,7 +304,7 @@ const ClientesList = () => {
                   <small style={{ color: 'var(--color-text-secondary)' }}>Iglesias Únicas</small>
                 </div>
               </div>
-              <div className="col-md-3">
+              <div className="col-md-2">
                 <div className="text-center">
                   <h4 style={{ color: 'var(--color-accent)' }}>
                     {clientes.filter(c => {

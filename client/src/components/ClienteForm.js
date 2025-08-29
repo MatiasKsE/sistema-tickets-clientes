@@ -10,7 +10,8 @@ const ClienteForm = () => {
     nombreCompleto: '',
     telefono: '',
     iglesia: '',
-    cedula: ''
+    cedula: '',
+    pagado: false
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -30,7 +31,8 @@ const ClienteForm = () => {
           nombreCompleto: data.nombreCompleto || '',
           telefono: data.telefono || '',
           iglesia: data.iglesia || '',
-          cedula: data.cedula || ''
+          cedula: data.cedula || '',
+          pagado: data.pagado || false
         });
       } catch (err) {
         setError('No se pudo cargar el cliente');
@@ -42,8 +44,11 @@ const ClienteForm = () => {
   }, [id]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormValues((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormValues((prev) => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -143,6 +148,22 @@ const ClienteForm = () => {
                   required
                   placeholder="Ej: 1234567890"
                 />
+              </div>
+
+              <div className="mb-3">
+                <div className="form-check">
+                  <input
+                    id="pagado"
+                    name="pagado"
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={formValues.pagado}
+                    onChange={handleChange}
+                  />
+                  <label htmlFor="pagado" className="form-check-label">
+                    ✅ Cliente ha abonado y se le entregó la entrada
+                  </label>
+                </div>
               </div>
 
               <div className="d-grid gap-2">
