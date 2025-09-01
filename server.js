@@ -619,8 +619,16 @@ app.post('/api/admin/backups/restore', authenticateToken, (req, res) => {
       return res.status(404).json({ message: 'Backup no encontrado' });
     }
     fs.copyFileSync(src, CLIENTS_FILE);
-    cargarDesdeExcel();
-    return res.json({ message: 'Restaurado desde backup y recargado en memoria' });
+    
+    // Solo recargar si no hay clientes en memoria para evitar resets
+    if (clientes.length === 0) {
+      cargarDesdeExcel();
+      console.log('✅ Restaurado desde backup y recargado en memoria');
+    } else {
+      console.log('🔄 Manteniendo clientes en memoria, no recargando desde backup manual');
+    }
+    
+    return res.json({ message: 'Restaurado desde backup' });
   } catch (e) {
     console.error('Error restaurando backup:', e);
     return res.status(500).json({ message: 'Error restaurando backup' });
