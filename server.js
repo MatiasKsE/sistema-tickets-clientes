@@ -619,16 +619,8 @@ app.post('/api/admin/backups/restore', authenticateToken, (req, res) => {
       return res.status(404).json({ message: 'Backup no encontrado' });
     }
     fs.copyFileSync(src, CLIENTS_FILE);
-    
-    // Solo recargar si no hay clientes en memoria para evitar resets
-    if (clientes.length === 0) {
-      cargarDesdeExcel();
-      console.log('✅ Restaurado desde backup y recargado en memoria');
-    } else {
-      console.log('🔄 Manteniendo clientes en memoria, no recargando desde backup manual');
-    }
-    
-    return res.json({ message: 'Restaurado desde backup' });
+    cargarDesdeExcel();
+    return res.json({ message: 'Restaurado desde backup y recargado en memoria' });
   } catch (e) {
     console.error('Error restaurando backup:', e);
     return res.status(500).json({ message: 'Error restaurando backup' });
@@ -683,35 +675,13 @@ app.post('/api/debug/restaurar-desde-memoria', authenticateToken, (req, res) => 
   }
 });
 
-// Ruta para forzar sincronización y prevenir resets
+// Ruta para forzar sincronización y prevenir resets (DESHABILITADA)
 app.post('/api/debug/prevenir-reset', authenticateToken, (req, res) => {
-  try {
-    console.log('🛡️  Ejecutando prevención de reset...');
-    
-    // Verificar integridad de datos
-    verificarIntegridadDatos();
-    
-    // Forzar guardado de datos actuales
-    guardarEnExcel();
-    
-    // Crear backup de emergencia
-    const ts = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupPath = path.join(DATA_DIR, `clientes.backup-emergencia-${ts}.xlsx`);
-    fs.copyFileSync(CLIENTS_FILE, backupPath);
-    
-    res.json({
-      message: 'Prevención de reset ejecutada',
-      clientesEnMemoria: clientes.length,
-      backupCreado: path.basename(backupPath),
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('❌ Error en prevención de reset:', error);
-    res.status(500).json({
-      message: 'Error en prevención de reset',
-      error: error.message
-    });
-  }
+  res.json({
+    message: 'Función de prevención de reset deshabilitada para evitar resets no deseados',
+    clientesEnMemoria: clientes.length,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Debug: verificar si un archivo subido existe por nombre
