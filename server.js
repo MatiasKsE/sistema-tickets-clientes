@@ -760,6 +760,8 @@ function cargarDesdeExcel() {
   try {
     const filePath = CLIENTS_FILE;
     console.log('🔍 Intentando cargar desde:', filePath);
+    console.log('⏰ Timestamp de ejecución:', new Date().toISOString());
+    console.log('📊 Clientes en memoria antes de cargar:', clientes.length);
     
     if (fs.existsSync(filePath)) {
       const workbook = XLSX.readFile(filePath);
@@ -854,77 +856,32 @@ function guardarTickets() {
   }
 }
 
-// Función para verificar integridad de datos
+// Función para verificar integridad de datos (DESHABILITADA COMPLETAMENTE)
 function verificarIntegridadDatos() {
-  console.log('🔍 Verificando integridad de datos...');
-  console.log(`📊 Clientes en memoria: ${clientes.length}`);
-  console.log(`🎫 Tickets en memoria: ${ticketsGenerados.length}`);
+  // DESHABILITADA COMPLETAMENTE para evitar resets automáticos
+  console.log('🛑 Verificación de integridad DESHABILITADA COMPLETAMENTE');
+  console.log('📊 Clientes en memoria:', clientes.length);
+  console.log('🎫 Tickets en memoria:', ticketsGenerados.length);
   
-  // Verificar que el archivo Excel existe y tiene contenido
-  if (fs.existsSync(CLIENTS_FILE)) {
-    const stats = fs.statSync(CLIENTS_FILE);
-    console.log(`📁 Archivo Excel: ${stats.size} bytes, modificado: ${stats.mtime}`);
-    
-    // Solo restaurar si el archivo está realmente corrupto (muy pequeño) Y no hay clientes en memoria
-    if (stats.size < 1000 && clientes.length === 0) {
-      console.log('⚠️  Archivo Excel parece estar corrupto y no hay clientes en memoria');
-      restaurarDesdeBackup();
-    }
-  } else {
-    console.log('⚠️  Archivo Excel no encontrado');
-    // Solo restaurar si no hay clientes en memoria
-    if (clientes.length === 0) {
-      restaurarDesdeBackup();
-    }
-  }
+  // NO SE EJECUTA NINGUNA VERIFICACIÓN AUTOMÁTICA
+  // NO SE RESTAURA DESDE BACKUP
+  // NO SE RECARGA DESDE EXCEL
   
-  // Verificar que el archivo JSON de tickets existe
-  if (fs.existsSync(TICKETS_JSON_FILE)) {
-    const stats = fs.statSync(TICKETS_JSON_FILE);
-    console.log(`📄 Archivo JSON tickets: ${stats.size} bytes, modificado: ${stats.mtime}`);
-  } else {
-    console.log('⚠️  Archivo JSON tickets no encontrado');
-  }
+  console.log('✅ Manteniendo datos en memoria sin verificación automática');
 }
 
-// Función para restaurar desde backup automáticamente
+// Función para restaurar desde backup automáticamente (DESHABILITADA COMPLETAMENTE)
 function restaurarDesdeBackup() {
-  try {
-    console.log('🔄 Intentando restaurar desde backup...');
-    const files = fs.readdirSync(DATA_DIR);
-    const backups = files
-      .filter(name => name.startsWith('clientes.backup-') && name.endsWith('.xlsx'))
-      .map(name => {
-        const full = path.join(DATA_DIR, name);
-        const stat = fs.statSync(full);
-        return { filename: name, size: stat.size, mtime: stat.mtime };
-      })
-      .sort((a, b) => (a.mtime < b.mtime ? 1 : -1));
-    
-    if (backups.length > 0) {
-      const latestBackup = backups[0];
-      console.log(`📦 Restaurando desde backup: ${latestBackup.filename}`);
-      
-      const backupPath = path.join(DATA_DIR, latestBackup.filename);
-      fs.copyFileSync(backupPath, CLIENTS_FILE);
-      
-      // Solo recargar si no hay clientes en memoria
-      if (clientes.length === 0) {
-        cargarDesdeExcel();
-        console.log('✅ Restauración desde backup completada');
-      } else {
-        console.log('🔄 Manteniendo clientes en memoria, no recargando desde backup');
-      }
-    } else {
-      console.log('⚠️  No hay backups disponibles para restaurar');
-    }
-  } catch (error) {
-    console.error('❌ Error restaurando desde backup:', error.message);
-  }
+  // DESHABILITADA COMPLETAMENTE para evitar resets automáticos
+  console.log('🛑 Restauración automática desde backup DESHABILITADA COMPLETAMENTE');
+  console.log('✅ NO se restaurará automáticamente desde backup');
+  console.log('✅ NO se recargará desde Excel automáticamente');
+  console.log('✅ Manteniendo datos en memoria sin restauración automática');
 }
 
 // Cargar datos al iniciar
 console.log('🚀 Iniciando carga de datos...');
+console.log('⏰ Timestamp de carga inicial:', new Date().toISOString());
 cargarDesdeExcel();
 
 // Intentar cargar tickets persistidos
@@ -939,8 +896,9 @@ try {
   ticketsGenerados = [];
 }
 
-// Verificar integridad después de la carga
-verificarIntegridadDatos();
+// Verificar integridad después de la carga (DESHABILITADO para evitar resets)
+// verificarIntegridadDatos();
+console.log('🛑 Verificación de integridad deshabilitada para evitar resets automáticos');
 
 // Función para hacer backup automático cada cierto tiempo (DESHABILITADA)
 function hacerBackupAutomatico() {
