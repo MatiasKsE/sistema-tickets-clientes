@@ -29,16 +29,20 @@ if (!fs.existsSync(TICKETS_DIR)) fs.mkdirSync(TICKETS_DIR, { recursive: true });
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? [
-        'https://legado2025.netlify.app',
-        'http://localhost:3000'
-      ]
-    : ['http://localhost:3000'],
-  credentials: true
+  origin: [
+    'https://legado2025.netlify.app',
+    'http://localhost:3000',
+    'http://localhost:8002'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(express.static('public'));
+
+// Middleware para manejar solicitudes OPTIONS (preflight CORS)
+app.options('*', cors());
 
 // Servir archivos estáticos de uploads y tickets
 app.use('/uploads', express.static(UPLOADS_DIR));
