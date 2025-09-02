@@ -623,8 +623,14 @@ app.post('/api/admin/backups/restore', authenticateToken, (req, res) => {
       return res.status(404).json({ message: 'Backup no encontrado' });
     }
     fs.copyFileSync(src, CLIENTS_FILE);
-    cargarDesdeExcel();
-    return res.json({ message: 'Restaurado desde backup y recargado en memoria' });
+    console.log('✅ Backup restaurado al archivo Excel');
+    console.log('⚠️  NOTA: Los clientes en memoria NO se recargan automáticamente');
+    console.log('📋 Use /api/debug/cargar-clientes-excel para cargar manualmente si es necesario');
+    return res.json({ 
+      message: 'Backup restaurado al archivo Excel (clientes en memoria no afectados)',
+      clientesEnMemoria: clientes.length,
+      nota: 'Use /api/debug/cargar-clientes-excel para cargar manualmente'
+    });
   } catch (e) {
     console.error('Error restaurando backup:', e);
     return res.status(500).json({ message: 'Error restaurando backup' });
@@ -840,9 +846,13 @@ function cargarDesdeExcel() {
         console.log('⚠️  No hay clientes válidos en el archivo Excel');
       }
       
-      // Mantener lista vacía - no cargar automáticamente
-      clientes = [];
-      console.log('✅ Lista de clientes inicializada vacía (sin carga automática)');
+      // NO vaciar la lista si ya hay clientes en memoria
+      if (clientes.length === 0) {
+        console.log('✅ Lista de clientes ya estaba vacía (sin cambios)');
+      } else {
+        console.log(`🔄 Manteniendo ${clientes.length} clientes existentes en memoria (sin resetear)`);
+        console.log('📋 Clientes en memoria:', clientes.map(c => c.nombreCompleto));
+      }
     } else {
       console.log('⚠️  Archivo de clientes no encontrado, creando archivo vacío...');
       // Solo crear el archivo vacío, no agregar cliente de ejemplo
