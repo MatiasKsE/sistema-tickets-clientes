@@ -679,6 +679,63 @@ app.post('/api/debug/restaurar-desde-memoria', authenticateToken, (req, res) => 
   }
 });
 
+// Ruta para cargar manualmente clientes desde Excel
+app.post('/api/debug/cargar-clientes-excel', authenticateToken, (req, res) => {
+  try {
+    const clientesAntes = clientes.length;
+    
+    // Cargar clientes desde Excel manualmente
+    const filePath = CLIENTS_FILE;
+    if (fs.existsSync(filePath)) {
+      const workbook = XLSX.readFile(filePath);
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(worksheet);
+      
+      const clientesValidos = data.filter(row => row['Nombre Completo'] && row['Nombre Completo'].trim() !== '');
+      
+      if (clientesValidos.length > 0) {
+        clientes = clientesValidos.map(row => ({
+          id: row.ID || generarIDUnico(),
+          nombreCompleto: row['Nombre Completo'],
+          telefono: row['Teléfono'] || '',
+          iglesia: row['Iglesia'] || '',
+          cedula: row['Cédula'] || '',
+          pagado: row['Pagado'] === 'Sí' || row['Pagado'] === true || false,
+          fechaCreacion: row['Fecha Creación'] || new Date().toISOString(),
+          creadoPor: row['Creado Por'] || 'Sistema'
+        }));
+        
+        console.log(`✅ Cargados manualmente ${clientes.length} clientes desde Excel`);
+        
+        res.json({
+          message: 'Clientes cargados manualmente desde Excel',
+          clientesCargados: clientes.length,
+          clientesAntes: clientesAntes,
+          clientes: clientes
+        });
+      } else {
+        res.status(400).json({
+          message: 'No hay clientes válidos en el archivo Excel',
+          clientesEnMemoria: clientes.length
+        });
+      }
+    } else {
+      res.status(404).json({
+        message: 'Archivo Excel no encontrado',
+        clientesEnMemoria: clientes.length
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error cargando clientes manualmente:', error);
+    res.status(500).json({
+      message: 'Error cargando clientes manualmente',
+      error: error.message,
+      clientesEnMemoria: clientes.length
+    });
+  }
+});
+
 // Ruta para forzar sincronización y prevenir resets (DESHABILITADA)
 app.post('/api/debug/prevenir-reset', authenticateToken, (req, res) => {
   res.json({
@@ -774,29 +831,18 @@ function cargarDesdeExcel() {
       // Filtrar registros válidos (más flexible - solo requiere nombre)
       const clientesValidos = data.filter(row => row['Nombre Completo'] && row['Nombre Completo'].trim() !== '');
       
-      // Solo cargar si NO hay clientes en memoria (primera carga) o si hay más clientes en el archivo
-      if (clientes.length === 0 && clientesValidos.length > 0) {
-        // Primera carga - cargar todos los clientes válidos
-        clientes = clientesValidos.map(row => ({
-          id: row.ID || generarIDUnico(),
-          nombreCompleto: row['Nombre Completo'],
-          telefono: row['Teléfono'] || '',
-          iglesia: row['Iglesia'] || '',
-          cedula: row['Cédula'] || '',
-          pagado: row['Pagado'] === 'Sí' || row['Pagado'] === true || false,
-          fechaCreacion: row['Fecha Creación'] || new Date().toISOString(),
-          creadoPor: row['Creado Por'] || 'Sistema'
-        }));
-        
-        console.log(`✅ Cargados ${clientes.length} clientes válidos desde Excel (primera carga)`);
-        console.log('📋 Clientes procesados:', clientes);
-      } else if (clientes.length > 0) {
-        // Ya hay clientes en memoria - NO recargar para evitar resets
-        console.log(`🔄 Manteniendo ${clientes.length} clientes existentes en memoria (evitando reset)`);
-        console.log('📋 Clientes en memoria:', clientes.map(c => c.nombreCompleto));
+      // NO cargar clientes automáticamente - mantener lista vacía
+      if (clientesValidos.length > 0) {
+        console.log(`📊 Encontrados ${clientesValidos.length} clientes en Excel, pero NO se cargan automáticamente`);
+        console.log('📋 Clientes disponibles en Excel:', clientesValidos.map(row => row['Nombre Completo']));
+        console.log('🔄 Lista de clientes en memoria se mantiene vacía (requiere carga manual)');
       } else {
         console.log('⚠️  No hay clientes válidos en el archivo Excel');
       }
+      
+      // Mantener lista vacía - no cargar automáticamente
+      clientes = [];
+      console.log('✅ Lista de clientes inicializada vacía (sin carga automática)');
     } else {
       console.log('⚠️  Archivo de clientes no encontrado, creando archivo vacío...');
       // Solo crear el archivo vacío, no agregar cliente de ejemplo
