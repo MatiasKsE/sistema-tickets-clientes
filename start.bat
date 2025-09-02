@@ -19,4 +19,4 @@ echo.
 echo Presiona Ctrl+C para detener
 echo.
 
-npm run dev 
+npm start 
