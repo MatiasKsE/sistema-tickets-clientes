@@ -459,7 +459,12 @@ app.post('/api/debug/recargar-clientes', authenticateToken, (req, res) => {
       const clientesValidos = data.filter(row => row['Nombre Completo'] && row['Nombre Completo'].trim() !== '');
       
       if (clientesValidos.length > 0) {
-        clientes = clientesValidos.map(row => ({
+        // NO reemplazar la lista completa - solo agregar si no existen
+        const nuevosClientes = clientesValidos.filter(row => {
+          const existeCliente = clientes.find(c => c.id === row.ID || 
+            (c.nombreCompleto === row['Nombre Completo'] && c.cedula === row['Cédula']));
+          return !existeCliente;
+        }).map(row => ({
           id: row.ID || generarIDUnico(),
           nombreCompleto: row['Nombre Completo'],
           telefono: row['Teléfono'] || '',
@@ -469,7 +474,10 @@ app.post('/api/debug/recargar-clientes', authenticateToken, (req, res) => {
           creadoPor: row['Creado Por'] || 'Sistema'
         }));
         
-        console.log(`✅ Recargados ${clientes.length} clientes desde Excel`);
+        // Agregar solo los nuevos clientes
+        clientes.push(...nuevosClientes);
+        
+        console.log(`✅ Agregados ${nuevosClientes.length} nuevos clientes. Total: ${clientes.length}`);
       } else {
         console.log('⚠️  No hay clientes válidos en el archivo Excel para recargar');
       }
@@ -701,7 +709,12 @@ app.post('/api/debug/cargar-clientes-excel', authenticateToken, (req, res) => {
       const clientesValidos = data.filter(row => row['Nombre Completo'] && row['Nombre Completo'].trim() !== '');
       
       if (clientesValidos.length > 0) {
-        clientes = clientesValidos.map(row => ({
+        // NO reemplazar la lista completa - solo agregar si no existen
+        const nuevosClientes = clientesValidos.filter(row => {
+          const existeCliente = clientes.find(c => c.id === row.ID || 
+            (c.nombreCompleto === row['Nombre Completo'] && c.cedula === row['Cédula']));
+          return !existeCliente;
+        }).map(row => ({
           id: row.ID || generarIDUnico(),
           nombreCompleto: row['Nombre Completo'],
           telefono: row['Teléfono'] || '',
@@ -712,11 +725,14 @@ app.post('/api/debug/cargar-clientes-excel', authenticateToken, (req, res) => {
           creadoPor: row['Creado Por'] || 'Sistema'
         }));
         
-        console.log(`✅ Cargados manualmente ${clientes.length} clientes desde Excel`);
+        // Agregar solo los nuevos clientes
+        clientes.push(...nuevosClientes);
+        
+        console.log(`✅ Agregados ${nuevosClientes.length} nuevos clientes. Total: ${clientes.length}`);
         
         res.json({
           message: 'Clientes cargados manualmente desde Excel',
-          clientesCargados: clientes.length,
+          clientesCargados: nuevosClientes.length,
           clientesAntes: clientesAntes,
           clientes: clientes
         });
