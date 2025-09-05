@@ -54,17 +54,17 @@ const TicketGenerator = () => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await axios.post(`${config.API_URL}/api/upload-ticket-image`, formData, {
+      const response = await axios.post(`${config.API_URL}/api/upload-image`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
 
-      setUploadedImage(response.data.filename);
+      setUploadedImage(response.data.imageUrl);
       setSuccess('Imagen subida exitosamente');
     } catch (error) {
-      setError('Error al subir la imagen');
+      setError('Error al subir la imagen: ' + (error.response?.data?.message || error.message));
       console.error('Error:', error);
     } finally {
       setLoading(false);
@@ -72,8 +72,8 @@ const TicketGenerator = () => {
   };
 
   const handleGenerateTicket = async () => {
-    if (!selectedCliente || !uploadedImage) {
-      setError('Por favor selecciona un cliente y sube una imagen');
+    if (!selectedCliente) {
+      setError('Por favor selecciona un cliente');
       return;
     }
 
@@ -86,21 +86,25 @@ const TicketGenerator = () => {
         headers: { Authorization: `Bearer ${token}` }
       };
 
-      const response = await axios.post(`${config.API_URL}/api/generar-ticket`, {
+      // Generar ticket con imagen si existe
+      const response = await axios.post(`${config.API_URL}/api/tickets/generar-pdf`, {
         clienteId: selectedCliente.id,
-        imagenTicket: uploadedImage
+        clienteNombre: selectedCliente.nombreCompleto,
+        clienteTelefono: selectedCliente.telefono,
+        clienteIglesia: selectedCliente.iglesia,
+        clienteCedula: selectedCliente.cedula,
+        imageUrl: uploadedImage
       }, axiosConfig);
 
       setGeneratedTicket(response.data.ticket);
       setSuccess('Ticket generado exitosamente');
       
       // Actualizar el contador de tickets en el Dashboard
-      // Esto se puede hacer mediante un evento personalizado
       window.dispatchEvent(new CustomEvent('ticketGenerated', {
         detail: { ticketCount: 1 }
       }));
     } catch (error) {
-      setError('Error al generar el ticket');
+      setError('Error al generar el ticket: ' + (error.response?.data?.message || error.message));
       console.error('Error:', error);
     } finally {
       setLoading(false);

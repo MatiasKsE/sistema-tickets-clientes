@@ -255,10 +255,29 @@ app.post('/api/tickets', authenticateToken, async (req, res) => {
   }
 });
 
-// Ruta para generar PDF de ticket
+// Ruta para subir imagen
+app.post('/api/upload-image', authenticateToken, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No se subió ningún archivo' });
+    }
+    
+    const imageUrl = `/uploads/${req.file.filename}`;
+    res.json({ 
+      message: 'Imagen subida exitosamente',
+      imageUrl,
+      filename: req.file.filename
+    });
+  } catch (error) {
+    console.error('Error subiendo imagen:', error);
+    res.status(500).json({ message: 'Error subiendo imagen' });
+  }
+});
+
+// Ruta para generar PDF de ticket con imagen
 app.post('/api/tickets/generar-pdf', authenticateToken, async (req, res) => {
   try {
-    const { clienteId, clienteNombre, clienteTelefono, clienteIglesia, clienteCedula } = req.body;
+    const { clienteId, clienteNombre, clienteTelefono, clienteIglesia, clienteCedula, imageUrl } = req.body;
     
     // Crear ticket en MongoDB
     const ticketData = {
@@ -272,8 +291,8 @@ app.post('/api/tickets/generar-pdf', authenticateToken, async (req, res) => {
     
     const ticket = await TicketService.createTicket(ticketData);
     
-    // Generar PDF
-    const pdfPath = await generarPDFTicket(ticket);
+    // Generar PDF con imagen
+    const pdfPath = await generarPDFTicketConImagen(ticket, imageUrl);
     
     // Actualizar ticket con la ruta del archivo
     await TicketService.updateTicket(ticket.id, { archivoPath: pdfPath });
@@ -320,6 +339,65 @@ async function generarPDFTicket(ticket) {
   }
 }
 
+// Función para generar PDF de ticket con imagen
+async function generarPDFTicketConImagen(ticket, imageUrl) {
+  try {
+    const doc = new PDFDocument({ size: 'A4' });
+    const fileName = `ticket-${ticket.id}.pdf`;
+    const filePath = path.join(TICKETS_DIR, fileName);
+    
+    doc.pipe(fs.createWriteStream(filePath));
+    
+    // Contenido del PDF
+    doc.fontSize(20).text('TICKET DE ENTRADA', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(16).text(`ID: ${ticket.id}`, { align: 'center' });
+    doc.moveDown();
+    
+    // Agregar imagen si existe
+    if (imageUrl) {
+      try {
+        const imagePath = path.join(__dirname, imageUrl);
+        if (fs.existsSync(imagePath)) {
+          // Redimensionar imagen con Jimp
+          const image = await Jimp.read(imagePath);
+          const resizedImage = image.resize(200, 200);
+          const resizedPath = path.join(UPLOADS_DIR, `resized-${path.basename(imagePath)}`);
+          await resizedImage.writeAsync(resizedPath);
+          
+          // Agregar imagen al PDF
+          doc.image(resizedPath, {
+            fit: [200, 200],
+            align: 'center'
+          });
+          doc.moveDown();
+          
+          // Limpiar archivo temporal
+          fs.unlinkSync(resizedPath);
+        }
+      } catch (imageError) {
+        console.warn('Error procesando imagen:', imageError);
+        // Continuar sin imagen
+      }
+    }
+    
+    doc.fontSize(14).text(`Cliente: ${ticket.clienteNombre}`);
+    doc.text(`Teléfono: ${ticket.clienteTelefono}`);
+    doc.text(`Iglesia: ${ticket.clienteIglesia}`);
+    doc.text(`Cédula: ${ticket.clienteCedula}`);
+    doc.moveDown();
+    doc.text(`Fecha: ${new Date(ticket.fechaCreacion).toLocaleDateString()}`);
+    doc.text(`Generado por: ${ticket.creadoPor}`);
+    
+    doc.end();
+    
+    return filePath;
+  } catch (error) {
+    console.error('Error generando PDF con imagen:', error);
+    throw error;
+  }
+}
+
 // Ruta de estadísticas
 app.get('/api/stats', authenticateToken, async (req, res) => {
   try {
@@ -329,12 +407,90 @@ app.get('/api/stats', authenticateToken, async (req, res) => {
     ]);
     
     res.json({
+      totalClientes: clienteStats.total,
+      totalTickets: ticketStats.total,
       clientes: clienteStats,
       tickets: ticketStats
     });
   } catch (error) {
     console.error('Error obteniendo estadísticas:', error);
     res.status(500).json({ message: 'Error obteniendo estadísticas' });
+  }
+});
+
+// Ruta para descargar reporte Excel
+app.get('/api/reporte-excel', authenticateToken, async (req, res) => {
+  try {
+    const XLSX = require('xlsx');
+    
+    // Obtener datos de MongoDB
+    const [clientes, tickets] = await Promise.all([
+      ClienteService.getAllClientes(),
+      TicketService.getAllTickets()
+    ]);
+    
+    const workbook = XLSX.utils.book_new();
+    
+    // Hoja de clientes
+    const clientesData = clientes.map(cliente => ({
+      ID: cliente.id,
+      'Nombre Completo': cliente.nombreCompleto,
+      'Teléfono': cliente.telefono,
+      'Iglesia': cliente.iglesia,
+      'Cédula': cliente.cedula,
+      'Pagado': cliente.pagado ? 'Sí' : 'No',
+      'Fecha Creación': new Date(cliente.fechaCreacion).toLocaleDateString(),
+      'Creado Por': cliente.creadoPor
+    }));
+    
+    const clientesSheet = XLSX.utils.json_to_sheet(clientesData);
+    XLSX.utils.book_append_sheet(workbook, clientesSheet, 'Clientes');
+    
+    // Hoja de tickets
+    const ticketsData = tickets.map(ticket => ({
+      'ID Ticket': ticket.id,
+      'ID Cliente': ticket.clienteId,
+      'Nombre Cliente': ticket.clienteNombre,
+      'Teléfono Cliente': ticket.clienteTelefono,
+      'Iglesia Cliente': ticket.clienteIglesia,
+      'Cédula Cliente': ticket.clienteCedula,
+      'Fecha Generación': new Date(ticket.fechaCreacion).toLocaleDateString(),
+      'Generado Por': ticket.creadoPor,
+      'Estado': ticket.estado
+    }));
+    
+    const ticketsSheet = XLSX.utils.json_to_sheet(ticketsData);
+    XLSX.utils.book_append_sheet(workbook, ticketsSheet, 'Tickets');
+    
+    const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=reporte-clientes.xlsx');
+    res.send(excelBuffer);
+  } catch (error) {
+    console.error('Error generando reporte:', error);
+    res.status(500).json({ message: 'Error generando reporte' });
+  }
+});
+
+// Ruta para descargar ticket
+app.get('/api/descargar-ticket/:ticketId', authenticateToken, async (req, res) => {
+  try {
+    const { ticketId } = req.params;
+    const ticket = await TicketService.getTicketById(ticketId);
+    
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket no encontrado' });
+    }
+    
+    if (!ticket.archivoPath || !fs.existsSync(ticket.archivoPath)) {
+      return res.status(404).json({ message: 'Archivo de ticket no encontrado' });
+    }
+    
+    res.download(ticket.archivoPath, `ticket-${ticket.clienteNombre}.pdf`);
+  } catch (error) {
+    console.error('Error descargando ticket:', error);
+    res.status(500).json({ message: 'Error descargando ticket' });
   }
 });
 
