@@ -889,9 +889,12 @@ function cargarDesdeExcel() {
   }
 }
 
-// Función para guardar en Excel
+// Función para guardar en Excel con verificación robusta
 function guardarEnExcel() {
   try {
+    console.log(`🔄 Iniciando guardado de ${clientes.length} clientes en Excel...`);
+    console.log(`📊 Clientes a guardar:`, clientes.map(c => `${c.nombreCompleto} (${c.creadoPor})`));
+    
     const workbook = XLSX.utils.book_new();
     const clientesData = clientes.map(cliente => ({
       ID: cliente.id,
@@ -910,14 +913,37 @@ function guardarEnExcel() {
     // Guardado atómico con backup
     const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
     const tmp = `${CLIENTS_FILE}.tmp`;
+    
     // Backup si existe
     if (fs.existsSync(CLIENTS_FILE)) {
       const ts = new Date().toISOString().replace(/[:.]/g, '-');
-      fs.copyFileSync(CLIENTS_FILE, path.join(DATA_DIR, `clientes.backup-${ts}.xlsx`));
+      const backupPath = path.join(DATA_DIR, `clientes.backup-${ts}.xlsx`);
+      fs.copyFileSync(CLIENTS_FILE, backupPath);
+      console.log(`📋 Backup creado: ${backupPath}`);
     }
+    
+    // Guardado atómico
     fs.writeFileSync(tmp, buffer);
     fs.renameSync(tmp, CLIENTS_FILE);
-    console.log(`💾 Guardados ${clientes.length} clientes en Excel (${CLIENTS_FILE})`);
+    
+    // Verificación de que se guardó correctamente
+    if (fs.existsSync(CLIENTS_FILE)) {
+      const stats = fs.statSync(CLIENTS_FILE);
+      console.log(`✅ Guardado exitoso: ${clientes.length} clientes en Excel`);
+      console.log(`📁 Archivo: ${CLIENTS_FILE} (${stats.size} bytes, modificado: ${stats.mtime})`);
+      
+      // Verificación adicional: leer el archivo guardado
+      const workbookVerificacion = XLSX.readFile(CLIENTS_FILE);
+      const sheetVerificacion = workbookVerificacion.Sheets[workbookVerificacion.SheetNames[0]];
+      const dataVerificacion = XLSX.utils.sheet_to_json(sheetVerificacion);
+      console.log(`🔍 Verificación: ${dataVerificacion.length} clientes encontrados en archivo guardado`);
+      
+      if (dataVerificacion.length !== clientes.length) {
+        console.error(`⚠️  ADVERTENCIA: Discrepancia en número de clientes (memoria: ${clientes.length}, archivo: ${dataVerificacion.length})`);
+      }
+    } else {
+      throw new Error('El archivo no se creó correctamente');
+    }
   } catch (error) {
     console.error('❌ Error guardando en Excel:', error);
   }
@@ -961,6 +987,14 @@ function restaurarDesdeBackup() {
 console.log('🚀 Iniciando carga de datos...');
 console.log('⏰ Timestamp de carga inicial:', new Date().toISOString());
 cargarDesdeExcel();
+
+// Guardado automático cada 5 minutos para prevenir pérdida de datos en Render.com
+setInterval(() => {
+  if (clientes.length > 0) {
+    console.log('⏰ Guardado automático programado...');
+    guardarEnExcel();
+  }
+}, 5 * 60 * 1000); // 5 minutos
 
 // Intentar cargar tickets persistidos
 try {
