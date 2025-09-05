@@ -853,21 +853,27 @@ function cargarDesdeExcel() {
       // Filtrar registros válidos (más flexible - solo requiere nombre)
       const clientesValidos = data.filter(row => row['Nombre Completo'] && row['Nombre Completo'].trim() !== '');
       
-      // NO cargar clientes automáticamente - mantener lista vacía
+      // CARGAR clientes automáticamente al iniciar el servidor
       if (clientesValidos.length > 0) {
-        console.log(`📊 Encontrados ${clientesValidos.length} clientes en Excel, pero NO se cargan automáticamente`);
+        console.log(`📊 Encontrados ${clientesValidos.length} clientes en Excel, cargando automáticamente...`);
         console.log('📋 Clientes disponibles en Excel:', clientesValidos.map(row => row['Nombre Completo']));
-        console.log('🔄 Lista de clientes en memoria se mantiene vacía (requiere carga manual)');
+        
+        // Cargar clientes desde Excel
+        clientes = clientesValidos.map(row => ({
+          id: row.ID || generarIDUnico(),
+          nombreCompleto: row['Nombre Completo'],
+          telefono: row['Teléfono'] || '',
+          iglesia: row['Iglesia'] || '',
+          cedula: row['Cédula'] || '',
+          pagado: row['Pagado'] === 'Sí' || row['Pagado'] === true || false,
+          fechaCreacion: row['Fecha Creación'] || new Date().toISOString(),
+          creadoPor: row['Creado Por'] || 'Sistema'
+        }));
+        
+        console.log(`✅ Cargados ${clientes.length} clientes desde Excel automáticamente`);
+        console.log('📋 Clientes cargados:', clientes.map(c => c.nombreCompleto));
       } else {
         console.log('⚠️  No hay clientes válidos en el archivo Excel');
-      }
-      
-      // NO vaciar la lista si ya hay clientes en memoria
-      if (clientes.length === 0) {
-        console.log('✅ Lista de clientes ya estaba vacía (sin cambios)');
-      } else {
-        console.log(`🔄 Manteniendo ${clientes.length} clientes existentes en memoria (sin resetear)`);
-        console.log('📋 Clientes en memoria:', clientes.map(c => c.nombreCompleto));
       }
     } else {
       console.log('⚠️  Archivo de clientes no encontrado, creando archivo vacío...');
